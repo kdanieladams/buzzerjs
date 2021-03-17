@@ -1,10 +1,9 @@
 // NodeModule imports
-// const path = require('path');
 // const dotenv = require('dotenv');
+const path = require('path');
 const http = require('http');
 const express = require('express');
 const socketio = require('socket.io');
-const cors = require('cors');
 
 // App Imports
 const {
@@ -26,33 +25,53 @@ const PORT = process.env.PORT || 3000;
 // Bootstrapping
 const app = express();
 const server = http.createServer(app);
-const io = socketio(server);
+let io = null;
 
-app.use(cors({ origin: 'http://localhost:8080' }))
-    .use(express.json());
+if(process.env.NODE_ENV == 'development') {
+    io = socketio(server, {
+        cors: {
+            origin: "http://localhost:8080",
+            methods: ["GET", "POST"]
+        }
+    });
+}
+else {
+    io = socketio(server);
+}
 
 // Websocket Setup
-// io.on('connection', socket => {
+io.on('connection', socket => {
+    // Validate user and session id
+    socket.on('verify', ({ username, session_id }) => {
+        if(!validateUser(username, session_id)) {
+            socket.emit('verification', {
+                value: false,
+                msg: 'User already exists!'
+            });
+            socket.disconnect();
+            return;
+        }
 
-// });
+        if(!validateSession(session_id)) {
+            socket.emit('verification', {
+                value: false,
+                msg: 'Session ID not found!'
+            });
+            socket.disconnect();
+            return;
+        }
 
-// Validate Connection Params
-app.post('/api/join', (req, res) => {
-    // console.log('post request received...', validateUser(req.body.username, req.body.session_id));
-    // res.status(401).send('request received...');
+        // Add user
+        userJoin(username, '127.0.0.1', session_id);
 
-    if(!validateUser(req.body.username, req.body.session_id)) {
-        console.log('invalid user...');
-        res.status(401).send('User already exists!');
-    }
-
-    if(!validateSession(req.body.session_id)) {
-        console.log('invalid session...');
-        res.status(404).send('Session not found!');
-    }
-
-    res.status(200).send();
+        // Confirm success
+        socket.emit('verification', {
+            value: true,
+            msg: 'Successfully connected!'
+        });
+    });
 });
 
 // Init Server
+app.use(express.static(path.join(__dirname, 'www')));
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

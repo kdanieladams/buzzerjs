@@ -16,6 +16,7 @@ function userJoin(username, ip, session_id) {
     const user = { id: generateUserId(), username, ip, session_id };
 
     users.push(user);
+    console.log('user joined', user);
     return user;
 }
 
@@ -34,7 +35,7 @@ function getSessionUsers(session) {
 function validateUser(username, session) {
     let invalidUser = users.find(user => user.username == username && user.session_id == session);
 
-    if(invalidUser)
+    if(invalidUser || !username)
         return false;
 
     return true;

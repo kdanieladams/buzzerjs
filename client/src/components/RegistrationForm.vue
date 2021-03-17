@@ -65,23 +65,10 @@ export default {
             else
                 localStorage.removeItem('username');
 
-            // console.log('Form submitted!', this.sessionCode, this.username, this.rememberme);
+            sessionStorage.setItem('username', this.username);
 
-            // send request to create user and validate/create session 
-            resp = await fetch('http://localhost:3000/api/join', {
-                method: 'POST',
-                headers: {
-                    'Content-type': 'application/json'
-                },
-                body: JSON.stringify({
-                    "username": this.username,
-                    "session_id": this.sessionCode
-                })
-            });
-            // data = await resp.json();
-            console.log('request completed', resp.status);
-
-            // this.$router.push({ name: 'WaitingRoom', params: { sessionid: this.sessionCode } });
+            // send request to create user and validate/create session
+            this.$router.push({ name: 'Session', params: { session_id: this.sessionCode } });
         }
     },
     created() {

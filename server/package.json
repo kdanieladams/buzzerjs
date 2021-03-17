@@ -4,13 +4,12 @@
   "description": "Simple buzzer app for use in internet-panel debates",
   "main": "server.js",
   "scripts": {
-    "start": "node server",
-    "dev": "nodemon server"
+    "start": "NODE_ENV=production node server",
+    "dev": "NODE_ENV=development nodemon server"
   },
   "author": "K. Daniel Adams",
   "license": "MIT",
   "dependencies": {
-    "cors": "^2.8.5",
     "express": "^4.17.1",
     "moment": "^2.29.1",
     "socket.io": "^4.0.0"

@@ -35,6 +35,9 @@ export default {
             this.showRegistrationForm = false;
             this.isHosting = false;
         }
+    },
+    created() {
+        sessionStorage.removeItem('username');
     }
 }
 </script>
