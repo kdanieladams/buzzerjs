@@ -1,0 +1,20 @@
+{
+  "name": "buzzerjs-client",
+  "version": "1.0.0",
+  "description": "Simple buzzer app for use in internet-panel debates",
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build"
+  },
+  "author": "K. Daniel Adams",
+  "license": "MIT",
+  "dependencies": {
+    "vue": "^3.0.0",
+    "vue-router": "^4.0.0-0"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-router": "~4.5.0",
+    "@vue/cli-service": "~4.5.0",
+    "@vue/compiler-sfc": "^3.0.0"
+  }
+}
