@@ -14,38 +14,37 @@
                 @begin-session="startSession" />
         </template>
         <template v-if="session_started">
-            <h2 class="center">Session has started!</h2>
-            <p>Here are the properties of the session:</p>
-            <p>Prompts:
-                <div v-for="(prompt, i) in active_session.prompts"> 
-                    {{ prompt }}
-                </div>
-            </p>
-            <p>Host is participating? {{ active_session.host_participate }}</p>
-            <p>Participant minutes: {{ active_session.participant_minutes }}</p>
-            <p>Roudtable minutes: {{ active_session.roundtable_minutes }}</p>
+            <ActiveParticipant v-if="!is_host" :session="active_session"
+                :users="users" />
+            <ActiveHost v-if="is_host" :session="active_session"
+                :users="users" />
         </template>
     </template>
 </template>
 
 <script>
 import { io } from "socket.io-client";
-import WaitingRoom from '../components/WaitingRoom';
+import ActiveHost from '../components/ActiveHost';
+import ActiveParticipant from '../components/ActiveParticipant';
 import SetupSessionForm from '../components/SetupSessionForm';
+import WaitingRoom from '../components/WaitingRoom';
 
 export default {
     name: 'Session',
     components: {
-        WaitingRoom,
-        SetupSessionForm
+        ActiveHost,
+        ActiveParticipant,
+        SetupSessionForm,
+        WaitingRoom
     },
     data() {
         return {
             active_session: null,
-            session_id: '',
             is_host: false,
+            session_id: '',
             session_started: false,
             socket: null,
+            users: [],
             verified: false
         };
     },
@@ -83,16 +82,25 @@ export default {
             session_id: this.session_id,
             is_host: this.is_host
         });
-        this.socket.on('verification', ({ value, msg, started }) => {
+        this.socket.on('verification', ({ value, msg, started, session }) => {
             this.verify(value, msg);
             this.session_started = started;
+            this.active_session = session;
         });
 
         // Handle session start
         this.socket.on('sessionStarted', session => {
-            console.log('sessionStarted', session);
+            // console.log('sessionStarted', session);
             this.active_session = session;
             this.session_started = true;
+        });
+
+        // Update user list
+        this.socket.on('userList', ({ session_id, users }) => {
+            // console.log('userList', this.active_session.id, session_id, users);
+            if(this.active_session && this.active_session.id == session_id) {
+                this.users = users;
+            }
         });
 
         // Handle session end

@@ -1,7 +1,7 @@
 <template>
     <h2 class="center">{{ session_id }}</h2>
     <h4 class="center">Hey {{ username }}! Setup your new session.</h4>
-    <p>Enter the prompts for debate:</p>
+    <p>Enter the prompts for debate (<i class="small">drag and drop to sort</i>):</p>
     <form @submit="onPromptSubmit" id="add-prompts-form">
         <div class="form-control">
             <input v-model="newPrompt" 
@@ -15,10 +15,14 @@
         </button>
     </form>
     <ul id="prompt-list">
-        <li v-for="(prompt, i) in prompts">
-            <div>{{ prompt }}</div> 
-            <i class='far fa-times-circle delete-prompt' @click="deletePrompt(i)"></i>
-        </li>
+        <Draggable :list="prompts" item-key="(elm) => { return elm; }">
+            <template #item="{ element, index }">
+                <li>
+                    <div>{{ element }}</div> 
+                    <i class='far fa-times-circle delete-prompt' @click="deletePrompt(index)"></i>
+                </li>        
+            </template>
+        </Draggable>
     </ul>
     <p>Select options for the session:</p>
     <form id="options-form">
@@ -33,7 +37,7 @@
                 Participant response minutes?
             </label>
             <input v-model="options.participant_minutes" type="number" id="time-min" 
-                size="2" max="99" min="0" />
+                size="2" max="99" min="1" />
         </div>
         <div class="form-control time-field">
             <label for="time-roundtable">
@@ -49,6 +53,7 @@
 </template>
 
 <script>
+import draggable from 'vuedraggable';
 import Button from './Button';
 
 export default {
@@ -57,6 +62,7 @@ export default {
         session_id: String
     },
     components: {
+        Draggable: draggable,
         Button
     },
     data() {

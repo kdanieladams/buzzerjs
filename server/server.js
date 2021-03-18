@@ -56,7 +56,7 @@ io.on('connection', socket => {
         }
 
         // Add user
-        let user = userJoin(username,  
+        let user = userJoin(username,
             socket.handshake.address, 
             session_id,
             socket.id);
@@ -81,7 +81,8 @@ io.on('connection', socket => {
         socket.emit('verification', {
             value: true,
             msg: 'Successfully connected!',
-            started: session.started
+            started: session.started,
+            session: session
         });
 
         // Join the appropriate socket.io room
@@ -89,7 +90,7 @@ io.on('connection', socket => {
 
         // Emit updated user list
         io.to(user.session_id).emit('userList', {
-            session: user.session_id,
+            session_id: user.session_id,
             users: getSessionUsers(user.session_id)
         });
     });
@@ -98,6 +99,7 @@ io.on('connection', socket => {
         let user = getUserBySocket(socket.id),
             session = getSession(user.session_id);
 
+        // Translate session props
         session.started = true;
         session.prompts = prompts;
         session.host_participate = options.host_participate;
@@ -105,7 +107,12 @@ io.on('connection', socket => {
         session.roundtable_minutes = parseInt(options.roundtable_minutes);
 
         io.to(session.id).emit('sessionStarted', session);
-        console.log(`session ${session.id} started...`, session, options);
+        // console.log(`session ${session.id} started...`, session, options);
+    });
+
+    socket.on('buzzIn', () => {
+        let user = getUserBySocket(socket.id);
+        // ...
     });
 
     socket.on('disconnect', () => {
@@ -114,12 +121,13 @@ io.on('connection', socket => {
         if(user) {
             let session = getSession(user.session_id);
             
+            // Destroy the user
             user = userLeave(user.id);
             console.log(`${user.username} disconnected...`);     
 
             // Emit updated user list
-            io.to(user.room).emit('userList', {
-                session: user.session_id,
+            io.to(user.session_id).emit('userList', {
+                session_id: user.session_id,
                 users: getSessionUsers(user.session_id)
             });
 
