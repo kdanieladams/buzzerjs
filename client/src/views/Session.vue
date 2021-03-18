@@ -17,6 +17,7 @@ export default {
     data() {
         return {
             session_id: '',
+            is_host: false,
             socket: null,
             verified: false
         };
@@ -35,13 +36,20 @@ export default {
         }
     },
     created() {
-        this.socket = io('http://localhost:3000');
+        // console.log('Session created', process.env);
+        this.socket = io(`http://${ process.env.VUE_APP_SERVER_ADDR }:${ process.env.VUE_APP_SERVER_PORT }`);
     },
     mounted() {
         let username = sessionStorage.getItem('username');
         
         this.session_id = this.$route.params.session_id;
-        this.socket.emit('verify', { username, session_id: this.session_id });
+        this.is_host = !!(this.$route.params.is_host == 'host');
+
+        this.socket.emit('verify', { 
+            username, 
+            session_id: this.session_id,
+            is_host: this.is_host
+        });
         this.socket.on('verification', ({ value, msg }) => {
             this.verify(value, msg);
         });

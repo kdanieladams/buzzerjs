@@ -63,9 +63,13 @@ export default {
             else
                 localStorage.removeItem('username');
 
-            // send request to create user and validate/create session
             sessionStorage.setItem('username', this.username);
-            this.$router.push({ name: 'Session', params: { session_id: this.sessionCode } });
+
+            // send request to create user and validate/create session
+            if(this.isHosting)
+                this.$router.push({ name: 'Session', params: { session_id: this.sessionCode, is_host: 'host' } });
+            else
+                this.$router.push({ name: 'Session', params: { session_id: this.sessionCode } });
         }
     },
     created() {
