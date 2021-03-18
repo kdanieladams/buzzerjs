@@ -12,8 +12,14 @@ function generateUserId() {
     return userid;
 }
 
-function userJoin(username, ip, session_id) {
-    const user = { id: generateUserId(), username, ip, session_id };
+function userJoin(username, ip, session_id, socket_id) {
+    const user = { 
+        id: generateUserId(), 
+        username, 
+        ip, 
+        session_id,
+        socket_id
+    };
 
     users.push(user);
     console.log('user joined', user);
@@ -32,6 +38,10 @@ function getSessionUsers(session) {
     return users.filter(user => user.session_id == session);
 }
 
+function getUserBySocket(socket_id) {
+    return users.find(user => user.socket_id == socket_id);
+}
+
 function validateUser(username, session) {
     let invalidUser = users.find(user => user.username == username && user.session_id == session);
 
@@ -43,6 +53,7 @@ function validateUser(username, session) {
 
 module.exports = {
     getSessionUsers,
+    getUserBySocket,
     userJoin,
     userLeave,
     validateUser

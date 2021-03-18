@@ -1,7 +1,7 @@
 <template>
     <div class="center">
         <h3>Welcome to the waiting room.</h3>
-        <p>Waiting on session {{ session_id }} to start...</p>
+        <p>Waiting on host to begin session {{ session_id }}...</p>
         <Button text="Cancel" color="#900" @btn-click="this.$router.push('/')" />
     </div>
 </template>

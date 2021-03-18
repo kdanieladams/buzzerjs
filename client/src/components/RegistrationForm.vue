@@ -6,7 +6,7 @@
         </div>
         <div class="form-control">
             <label for="rememberme" class="small">
-                <input v-model="rememberme" type="checkbox" name="rememberme" />
+                <input v-model="rememberme" type="checkbox" id="rememberme" />
                 Remember Username?
             </label>
         </div>
@@ -16,8 +16,8 @@
             <p class="small">Your participants require your Session ID to join.</p>
         </div>
         <div v-if="!this.isHosting" class="form-control">
-            <label for="sessionid">Session ID:</label>
-            <input v-model="sessionCode" name="sessionid" />
+            <label for="session-id">Session ID:</label>
+            <input v-model="sessionCode" id="session-id" autocomplete="off" />
         </div>
         <div class="right">
             <Button :text="this.isHosting ? 'Next Step &gt;&gt;' : 'Join Session'" />

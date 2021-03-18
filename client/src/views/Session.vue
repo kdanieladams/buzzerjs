@@ -1,18 +1,24 @@
 <template>
+    <router-link to="/">&lt;&lt; Start Over</router-link>
     <p v-if="!verified" class="center">
         Attempting to connect...
     </p>
-    <WaitingRoom v-if="verified" :session_id="session_id" />
+    <WaitingRoom v-if="verified && !is_host" 
+        :session_id="session_id" />
+    <AddPromptsForm v-if="verified && is_host" 
+        :session_id="session_id" />
 </template>
 
 <script>
 import { io } from "socket.io-client";
 import WaitingRoom from '../components/WaitingRoom';
+import AddPromptsForm from '../components/AddPromptsForm';
 
 export default {
     name: 'Session',
     components: {
-        WaitingRoom
+        WaitingRoom,
+        AddPromptsForm
     },
     data() {
         return {
@@ -24,8 +30,6 @@ export default {
     },
     methods: {
         verify(value, msg) {
-            console.log('verification', value, msg);
-            
             if(!value) {
                 alert(msg);
                 this.$router.push('/');
@@ -36,7 +40,6 @@ export default {
         }
     },
     created() {
-        // console.log('Session created', process.env);
         this.socket = io(`http://${ process.env.VUE_APP_SERVER_ADDR }:${ process.env.VUE_APP_SERVER_PORT }`);
     },
     mounted() {
@@ -53,6 +56,11 @@ export default {
         this.socket.on('verification', ({ value, msg }) => {
             this.verify(value, msg);
         });
+    },
+    beforeUnmount() {
+        // cleanup before unmount
+        this.socket.close();
+        sessionStorage.removeItem('username');
     }
 }
 </script>

@@ -16,7 +16,7 @@ function createSession(session_id, host_id) {
 }
 
 function destroySession(session_id) {
-    const index = sessions.findIndex(session => session.id === session_id);
+    let index = sessions.findIndex(session => session.id === session_id);
     
     if(index !== -1) {
         return sessions.splice(index, 1)[0];

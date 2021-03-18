@@ -112,7 +112,7 @@ p {
   width: 100%;
   padding: 5px;
   font-size: 1rem;
-  background-color: #555;
+  background-color: #222;
   color: white;
   border: none;
 }

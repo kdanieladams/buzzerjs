@@ -1,6 +1,6 @@
 # Buzzer.js Server
 
-Simple buzzer app for debates.  This is the server-side app, written in Express.js.
+Simple buzzer app for debates.  This is the server-side app, written with Express.js/Socket.io.
 
 ## Project setup
 ```
