@@ -1,4 +1,6 @@
-# client
+# Buzzer.js Client
+
+Simple buzzer app for debates.  This is the client-side app, written in Vue.js.
 
 ## Project setup
 ```

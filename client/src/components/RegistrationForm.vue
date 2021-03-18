@@ -56,8 +56,6 @@ export default {
             return code;
         },
         async onSubmit(e) {
-            let resp = null, 
-                data = null;
             e.preventDefault();
 
             if(this.rememberme)
@@ -65,9 +63,8 @@ export default {
             else
                 localStorage.removeItem('username');
 
-            sessionStorage.setItem('username', this.username);
-
             // send request to create user and validate/create session
+            sessionStorage.setItem('username', this.username);
             this.$router.push({ name: 'Session', params: { session_id: this.sessionCode } });
         }
     },
