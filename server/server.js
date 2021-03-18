@@ -74,19 +74,40 @@ io.on('connection', socket => {
             return;
         }
 
+        // Get session info
+        let session = getSession(user.session_id);
+
         // Confirm success
         socket.emit('verification', {
             value: true,
-            msg: 'Successfully connected!'
+            msg: 'Successfully connected!',
+            started: session.started
         });
 
+        // Join the appropriate socket.io room
+        socket.join(user.session_id);
+
         // Emit updated user list
-        io.emit('userList', {
+        io.to(user.session_id).emit('userList', {
             session: user.session_id,
             users: getSessionUsers(user.session_id)
         });
     });
     
+    socket.on('startSession', ({ prompts, options }) => {
+        let user = getUserBySocket(socket.id),
+            session = getSession(user.session_id);
+
+        session.started = true;
+        session.prompts = prompts;
+        session.host_participate = options.host_participate;
+        session.participant_minutes = parseInt(options.participant_minutes);
+        session.roundtable_minutes = parseInt(options.roundtable_minutes);
+
+        io.to(session.id).emit('sessionStarted', session);
+        console.log(`session ${session.id} started...`, session, options);
+    });
+
     socket.on('disconnect', () => {
         let user = getUserBySocket(socket.id);
 
@@ -97,7 +118,7 @@ io.on('connection', socket => {
             console.log(`${user.username} disconnected...`);     
 
             // Emit updated user list
-            io.emit('userList', {
+            io.to(user.room).emit('userList', {
                 session: user.session_id,
                 users: getSessionUsers(user.session_id)
             });
@@ -107,12 +128,14 @@ io.on('connection', socket => {
                 destroySession(session.id);
                 console.log(`session ${session.id} destroyed...`);
 
-                io.emit('hostLeft', 'Sorry, the host has closed the session.');
+                io.to(session.id).emit('sessionEnd', 'The host has closed the session.');
             }
         }
     });
 });
 
 // Init Server
-app.use(express.static(path.join(__dirname, 'www')));
+if(process.env.NODE_ENV == 'production')
+    app.use(express.static(path.join(__dirname, 'www')));
+
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

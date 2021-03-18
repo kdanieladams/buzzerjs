@@ -25,24 +25,26 @@
         <div class="form-control">
             <label for="host-participate">
                 <div>Will the host participate in the debate?</div>
-                <input type="checkbox" id="host-participate" />
+                <input v-model="options.host_participate" type="checkbox" id="host-participate" />
             </label>
         </div>
         <div class="form-control time-field">
             <label for="time-min">
                 Participant response minutes?
             </label>
-            <input type="number" id="time-min" size="2" max="99" min="0"  value="1" />
+            <input v-model="options.participant_minutes" type="number" id="time-min" 
+                size="2" max="99" min="0" />
         </div>
         <div class="form-control time-field">
             <label for="time-roundtable">
                 Roundtable minutes? <span class="small">(enter '0' for no roundtable)</span>
             </label>
-            <input type="number" id="time-roundtable" size="2" max="99" min="0"  value="30" />
+            <input v-model="options.roundtable_minutes" type="number" id="time-roundtable" 
+                size="2" max="99" min="0" />
         </div>
     </form>
     <div class="center">
-        <Button text="Start Session" color="#900" icon="fa-play" />
+        <Button text="Start Session" color="#900" icon="fa-play" @btn-click="$emit('begin-session', { prompts: prompts, options: options })" />
     </div>
 </template>
 
@@ -50,7 +52,7 @@
 import Button from './Button';
 
 export default {
-    name: "AddPromptsForm",
+    name: "SetupSessionForm",
     props: {
         session_id: String
     },
@@ -60,6 +62,11 @@ export default {
     data() {
         return {
             newPrompt: '',
+            options: {
+                host_participate: false,
+                participant_minutes: 1,
+                roundtable_minutes: 30
+            },
             prompts: [],
             username: sessionStorage.getItem('username')
         };
@@ -75,7 +82,8 @@ export default {
             if(confirm("Are you sure you want to delete the selected prompt?"))
                 this.prompts.splice(index, 1);
         }
-    }
+    },
+    emits: [ 'begin-session' ]
 }
 </script>
 
@@ -102,6 +110,7 @@ label[for='host-participate'] div {
 }
 #add-prompts-form button {
     flex: 1;
+    margin-right: 0;
     padding: 0;
     font: 25px bold sans-serif;
 }

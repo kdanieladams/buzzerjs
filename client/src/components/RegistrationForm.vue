@@ -55,7 +55,7 @@ export default {
 
             return code;
         },
-        async onSubmit(e) {
+        onSubmit(e) {
             e.preventDefault();
 
             if(this.rememberme)
@@ -66,10 +66,14 @@ export default {
             sessionStorage.setItem('username', this.username);
 
             // send request to create user and validate/create session
-            if(this.isHosting)
-                this.$router.push({ name: 'Session', params: { session_id: this.sessionCode, is_host: 'host' } });
-            else
-                this.$router.push({ name: 'Session', params: { session_id: this.sessionCode } });
+            if(this.sessionCode) {
+                if(this.isHosting)
+                    this.$router.push({ name: 'Session', params: { session_id: this.sessionCode, is_host: 'host' } });
+                else
+                    this.$router.push({ name: 'Session', params: { session_id: this.sessionCode } });
+            } else {
+                alert("Session ID is required.");
+            }
         }
     },
     created() {

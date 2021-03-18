@@ -7,9 +7,14 @@ function createSession(session_id, host_id) {
         session = { 
             id: session_id,
             host_id: host_id,
-            prompts: []
+            prompts: [],
+            host_participate: false,
+            participant_minutes: 0,
+            roundtable_minutes: 0,
+            started: false
         };
         sessions.push(session);
+        console.log(`session ${session.id} created...`);
     }
     
     return session;
