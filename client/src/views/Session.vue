@@ -71,7 +71,10 @@ export default {
         }
     },
     created() {
-        this.socket = io(`http://${ process.env.VUE_APP_SERVER_ADDR }:${ process.env.VUE_APP_SERVER_PORT }`);
+        if(process.env.NODE_ENV == 'development')
+            this.socket = io(`http://${ process.env.VUE_APP_SERVER_ADDR }:${ process.env.VUE_APP_SERVER_PORT }`);
+        else
+            this.socket = io();
     },
     mounted() {
         let username = sessionStorage.getItem('username');
@@ -100,7 +103,6 @@ export default {
 
         // Update user list
         this.socket.on('userList', ({ session_id, users }) => {
-            // console.log('userList', this.active_session.id, session_id, users);
             if(this.active_session && this.active_session.id == session_id) {
                 this.users = users;
             }

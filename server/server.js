@@ -50,10 +50,12 @@ function updateUserList(io, session_id) {
         session = getSession(session_id);
 
     if(session.user_id_order.length > 0) {
-        users = session.user_id_order.map((user_id, index) => {
+        users = session.user_id_order.map((user_id) => {
             return users.find(user => user.id == user_id);
         });
     }
+
+    // console.log('updateUserList...', users, session.user_id_order);
 
     io.to(session_id).emit('userList', {
         session_id: session_id,
@@ -96,6 +98,8 @@ io.on('connection', socket => {
         // Get session info
         let session = getSession(user.session_id);
 
+        session.user_id_order.push(user.id);
+
         // Confirm success
         socket.emit('verification', {
             value: true,
@@ -117,7 +121,12 @@ io.on('connection', socket => {
 
         // Translate session props
         session.started = true;
-        session.prompts = prompts;
+        session.prompts = prompts.map(prompt => {
+            return { 
+                text: prompt, 
+                users_spoken: []
+            };
+        });
         session.host_participate = options.host_participate;
         session.participant_minutes = parseInt(options.participant_minutes);
         session.roundtable_minutes = parseInt(options.roundtable_minutes);
@@ -164,11 +173,16 @@ io.on('connection', socket => {
             
             // Destroy the user
             user = userLeave(user.id);
-            console.log(`${user.username} disconnected...`);     
-
+            console.log(`${user.username} disconnected...`); 
+            
             // Emit updated user list
-            if(session)
+            if(session){
+                let userIdIndex = session.user_id_order
+                    .findIndex(user_id => user_id == user.id);
+
+                session.user_id_order.splice(userIdIndex, 1);
                 updateUserList(io, session.id);
+            }
 
             // Destroy the session
             if(session && session.host_id == user.id) {

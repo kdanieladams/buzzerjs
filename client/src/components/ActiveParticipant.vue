@@ -10,7 +10,7 @@
     <p>Prompts:
         <div v-for="(prompt, i) in session.prompts" class="small" 
             style="background-color: #333; margin: 10px 0;"> 
-            {{ prompt }}
+            {{ prompt.text }}
         </div>
     </p>
     <hr />

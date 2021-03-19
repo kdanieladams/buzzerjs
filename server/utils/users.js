@@ -22,14 +22,14 @@ function userJoin(username, ip, session_id, socket_id) {
     };
 
     users.push(user);
-    console.log('user joined', user);
+    console.log(`user joined ${session_id}`, user.username, user.id, user.ip);
     return user;
 }
 
 function userLeave(id) {
-    const index = users.findIndex(user => user.id === id);
+    const index = users.findIndex(usr => usr.id === id);
     
-    if(index !== -1) {
+    if(index > -1) {
         return users.splice(index, 1)[0];
     }
 }

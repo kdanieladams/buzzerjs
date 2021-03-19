@@ -2,7 +2,7 @@
     <h2 class="center">Session {{ session.id }} started!</h2>
     <p>Prompts:
         <div v-for="(prompt, i) in session.prompts" class="small" style="background-color: #333; margin: 10px 0;"> 
-            {{ prompt }}
+            {{ prompt.text }}
         </div>
     </p>
     <hr />
@@ -40,11 +40,6 @@ export default {
     data() {
         return {
             clientUser: sessionStorage.getItem('username')
-        }
-    },
-    methods: {
-        sortUsers() {
-            console.log('draggable sort...');
         }
     },
     emits: [ 'user-sort' ]
