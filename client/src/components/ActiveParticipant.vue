@@ -1,24 +1,34 @@
 <template>
     <h2 class="center">Session has started!</h2>
-    <div id="timer">
-        <div v-if="users.length > 0" id="active-user">{{ users[0].username }}</div>
+    <Timer ref="timer" :active_user="users[0]" 
+        :session="session" />
+    <div v-if="users.length > 0 && users[0].username == clientUser" class="center">
+        <Button color="green" text="Ready" 
+            icon="fa-play" @btn-click="demoTimer" />
     </div>
+    <br />
     <p>Prompts:
-        <div v-for="(prompt, i) in session.prompts" class="small" style="background-color: #333; margin: 10px 0;"> 
+        <div v-for="(prompt, i) in session.prompts" class="small" 
+            style="background-color: #333; margin: 10px 0;"> 
             {{ prompt }}
         </div>
     </p>
     <hr />
     <p>Users:</p>
-    <ul>
-        <li v-for="(user, i) in users">
+    <ul id="user-list">
+        <li v-for="(user, i) in users" 
+            :class="i == 0 ? 'active' : ''">
+            <i v-if="i == 0" class="fas fa-user-clock"></i>
+            <i v-if="i != 0" class="fas fa-user"></i>
             {{ user.username }}
+            <i v-if="clientUser == user.username" class="small">(you)</i>
         </li>
     </ul>
 </template>
 
 <script>
-import ProgressBar from 'progressbar.js';
+import Button from './Button';
+import Timer from './Timer';
 
 export default {
     name: 'ActiveParticipant',
@@ -26,58 +36,31 @@ export default {
         session: Object,
         users: Array
     },
-    methods: {
-        initTimer() {
-            let maxSeconds = this.session.participant_minutes * 60,
-                currSeconds = maxSeconds,
-                timerInterval = null;
-
-            let circleTimer = new ProgressBar.Circle('#timer', {
-                strokeWidth: 2,
-                easing: 'easeInOut',
-                duration: 300,
-                color: '#FFEA82',
-                trailColor: '#333',
-                trailWidth: 1
-            });
-
-            timerInterval = setInterval(() => {
-                if(currSeconds == 0)
-                    clearInterval(timerInterval);
-                circleTimer.animate(currSeconds/maxSeconds);
-                circleTimer.setText(this.translateSeconds(currSeconds));
-                currSeconds--;
-            }, 1000);
-        },
-        translateSeconds(seconds) {
-            let minutes = Math.floor(seconds / 60);
-            seconds = seconds - (minutes * 60);
-
-            if(seconds < 10) seconds = "0" + seconds;
-
-            return minutes + ":" + seconds;
-        }
+    components: {
+        Button,
+        Timer
     },
-    mounted() {
-        this.initTimer();
+    data() {
+        return {
+            clientUser: sessionStorage.getItem('username')
+        };
+    },
+    methods: {
+        demoTimer() {
+            let maxSeconds = (this.session.participant_minutes * 60),
+            currSeconds = maxSeconds;
+        
+            console.log('starting interval...');
+
+            let interval = setInterval(() => {
+                currSeconds--;
+                this.$refs.timer.cycleTimer(currSeconds, maxSeconds);
+                // console.log('cycle interval...', currSeconds);
+                
+                if(currSeconds == 0) 
+                    clearInterval(interval);                
+            }, 1000);
+        }
     }
 }
 </script>
-
-<style scoped>
-#timer {
-    position: relative;
-    margin: 20px auto;
-    width: 200px;
-    height: 200px;
-    font-size: 2rem;
-}
-
-#timer #active-user {
-    position: absolute;
-    bottom: 25px;
-    width: 100%;
-    font-size: 1rem;
-    text-align: center;
-}
-</style>

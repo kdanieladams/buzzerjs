@@ -48,7 +48,8 @@
         </div>
     </form>
     <div class="center">
-        <Button text="Start Session" color="#900" icon="fa-play" @btn-click="$emit('begin-session', { prompts: prompts, options: options })" />
+        <Button text="Start Session" color="#900" icon="fa-play" 
+            @btn-click="$emit('begin-session', { prompts: prompts, options: options })" />
     </div>
 </template>
 
@@ -58,9 +59,6 @@ import Button from './Button';
 
 export default {
     name: "SetupSessionForm",
-    props: {
-        session_id: String
-    },
     components: {
         Draggable: draggable,
         Button
@@ -74,20 +72,26 @@ export default {
                 roundtable_minutes: 30
             },
             prompts: [],
-            username: sessionStorage.getItem('username')
+            username: sessionStorage.getItem('username'),
+            session_id: ''
         };
     },
     methods: {
         onPromptSubmit(e) {
             e.preventDefault();
 
-            this.prompts.push(this.newPrompt);
-            this.newPrompt = '';
+            if(this.newPrompt) {
+                this.prompts.push(this.newPrompt);
+                this.newPrompt = '';
+            }
         },
         deletePrompt(index) {
             if(confirm("Are you sure you want to delete the selected prompt?"))
                 this.prompts.splice(index, 1);
         }
+    },
+    created() {
+        this.session_id = this.$route.params.session_id;
     },
     emits: [ 'begin-session' ]
 }
@@ -134,9 +138,10 @@ label[for='host-participate'] div {
 }
 #prompt-list li div {
     flex: 5;
+    cursor: move;
 }
 #prompt-list li i.delete-prompt {
-    color: #c00;
+    color: #900;
     cursor: pointer;
     font-size: 1.5rem;
 }

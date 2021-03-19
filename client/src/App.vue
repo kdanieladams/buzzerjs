@@ -40,6 +40,9 @@ a, a:link, a:visited, a:active {
   color: #900;
   text-decoration: none;
 }
+a:hover {
+  color: #f00;
+}
 
 body {
   background-color: #333;
@@ -98,15 +101,12 @@ p {
 .form-control {
   margin: 15px 0;
 }
-
 .form-control label {
   font-weight: bold;
 }
-
 .form-control label.small {
   font-weight: normal;
 }
-
 .form-control input {
   display: block;
   width: 100%;
@@ -116,10 +116,21 @@ p {
   color: white;
   border: none;
 }
-
 .form-control input[type=checkbox] {
   width: auto;
   display: inline;
   margin-right: 5px;
+}
+
+#user-list {
+    list-style-type: none;
+}
+#user-list li {
+    font-size: 0.9rem;
+    padding: 5px;
+}
+#user-list li.active {
+    background-color: #050;
+    font-weight: bold;
 }
 </style>

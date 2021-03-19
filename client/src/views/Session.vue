@@ -7,17 +7,15 @@
     </p>
     <template v-if="verified">
         <template v-if="!session_started">
-            <WaitingRoom v-if="!is_host" 
-                :session_id="session_id" />
+            <WaitingRoom v-if="!is_host" />
             <SetupSessionForm v-if="is_host" 
-                :session_id="session_id"
                 @begin-session="startSession" />
         </template>
         <template v-if="session_started">
             <ActiveParticipant v-if="!is_host" :session="active_session"
                 :users="users" />
             <ActiveHost v-if="is_host" :session="active_session"
-                :users="users" />
+                :users="users" @user-sort="sortUsers" />
         </template>
     </template>
 </template>
@@ -56,6 +54,11 @@ export default {
             else {
                 alert('You must include at least one prompt.');
             }
+        },
+        sortUsers(users) {
+            let new_user_id_order = users.map(user => user.id);
+
+            this.socket.emit('reorderUsers', new_user_id_order);
         },
         verify(value, msg) {
             if(!value) {
@@ -116,3 +119,17 @@ export default {
     }
 }
 </script>
+
+<style scoped>
+::v-deep(#user-list) {
+    list-style-type: none;
+}
+::v-deep(#user-list li) {
+    font-size: 0.9rem;
+    padding: 5px;
+}
+::v-deep(#user-list li.active) {
+    background-color: #050;
+    font-weight: bold;
+}
+</style>

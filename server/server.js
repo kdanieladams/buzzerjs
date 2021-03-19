@@ -7,6 +7,7 @@ const socketio = require('socket.io');
 // App Imports
 const {
     getSessionUsers,
+    getUserById,
     getUserBySocket,
     userJoin,
     userLeave,
@@ -16,6 +17,7 @@ const {
     createSession,
     destroySession,
     getSession,
+    setUserOrder,
     validateSession
 } = require('./utils/sessions');
 
@@ -40,6 +42,23 @@ if(process.env.NODE_ENV == 'development') {
 else {
     console.log('NODE_ENV = production');
     io = socketio(server);
+}
+
+// Websocket utilities
+function updateUserList(io, session_id) {
+    let users = getSessionUsers(session_id),
+        session = getSession(session_id);
+
+    if(session.user_id_order.length > 0) {
+        users = session.user_id_order.map((user_id, index) => {
+            return users.find(user => user.id == user_id);
+        });
+    }
+
+    io.to(session_id).emit('userList', {
+        session_id: session_id,
+        users: users
+    });
 }
 
 // Websocket Setup
@@ -89,10 +108,7 @@ io.on('connection', socket => {
         socket.join(user.session_id);
 
         // Emit updated user list
-        io.to(user.session_id).emit('userList', {
-            session_id: user.session_id,
-            users: getSessionUsers(user.session_id)
-        });
+        updateUserList(io, user.session_id);
     });
     
     socket.on('startSession', ({ prompts, options }) => {
@@ -115,6 +131,31 @@ io.on('connection', socket => {
         // ...
     });
 
+    socket.on('reorderUsers', (new_user_id_order) => {
+        let user = getUserBySocket(socket.id),
+            session = user ? getSession(user.session_id) : false;
+
+        if(new_user_id_order.length > 0 && session) {
+            let invalidUserDetected = false;
+
+            for(i = 0; i < new_user_id_order.length; i++) {
+                let user_id = new_user_id_order[i];
+
+                if(!getUserById(user_id)) {
+                    invalidUserDetected = true;
+                    break;
+                }
+            }
+
+            if(invalidUserDetected)
+                return;
+
+            // console.log('reorderUsers...', session, new_user_id_order);
+            setUserOrder(session.id, new_user_id_order);
+            updateUserList(io, session.id);
+        }
+    });
+
     socket.on('disconnect', () => {
         let user = getUserBySocket(socket.id);
 
@@ -126,10 +167,8 @@ io.on('connection', socket => {
             console.log(`${user.username} disconnected...`);     
 
             // Emit updated user list
-            io.to(user.session_id).emit('userList', {
-                session_id: user.session_id,
-                users: getSessionUsers(user.session_id)
-            });
+            if(session)
+                updateUserList(io, session.id);
 
             // Destroy the session
             if(session && session.host_id == user.id) {

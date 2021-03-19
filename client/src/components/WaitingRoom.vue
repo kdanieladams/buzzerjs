@@ -11,11 +11,16 @@ import Button from './Button';
 
 export default {
     name: 'WaitingRoom',
-    props: {
-        session_id: String
-    },
     components: {
         Button
+    },
+    data() {
+        return {
+            session_id: ''
+        };
+    },
+    created() {
+        this.session_id = this.$route.params.session_id;
     }
 }
 </script>

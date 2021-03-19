@@ -38,6 +38,10 @@ function getSessionUsers(session) {
     return users.filter(user => user.session_id == session);
 }
 
+function getUserById(user_id) {
+    return users.find(user => user.id == user_id);
+}
+
 function getUserBySocket(socket_id) {
     return users.find(user => user.socket_id == socket_id);
 }
@@ -53,6 +57,7 @@ function validateUser(username, session) {
 
 module.exports = {
     getSessionUsers,
+    getUserById,
     getUserBySocket,
     userJoin,
     userLeave,
