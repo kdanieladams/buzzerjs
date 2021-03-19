@@ -9,7 +9,7 @@ function createSession(session_id, host_id) {
             host_id: host_id,
             prompts: [],
             host_participate: false,
-            participant_minutes: 0,
+            participant_seconds: 0,
             roundtable_minutes: 0,
             started: false,
             user_id_order: []

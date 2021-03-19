@@ -22,7 +22,7 @@ export default {
     },
     methods: {
         cycleTimer(currSeconds, maxSeconds) {
-            maxSeconds = maxSeconds || this.session.participant_minutes * 60;
+            maxSeconds = maxSeconds || this.session.participant_seconds;
             currSeconds = currSeconds || 0;
 
             this.circleTimer.animate(currSeconds/maxSeconds);
@@ -30,7 +30,7 @@ export default {
         },
         initTimer() {
             // let timerInterval = null;
-            let maxSeconds = this.session.participant_minutes * 60;
+            let maxSeconds = this.session.participant_seconds;
 
             this.circleTimer = new ProgressBar.Circle('#timer', {
                 strokeWidth: 2,
@@ -42,14 +42,6 @@ export default {
             });
 
             this.cycleTimer(maxSeconds, maxSeconds);
-
-            // timerInterval = setInterval(() => {
-            //     if(currSeconds == 0)
-            //         clearInterval(timerInterval);
-            //     circleTimer.animate(currSeconds/maxSeconds);
-            //     circleTimer.setText(this.translateSeconds(currSeconds));
-            //     currSeconds--;
-            // }, 1000);
         },
         translateSeconds(seconds) {
             let minutes = Math.floor(seconds / 60);

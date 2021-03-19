@@ -10,9 +10,7 @@
                 autocomplete="off"
             />
         </div>
-        <button class="btn" style="background-color: green;">
-            <i class="fas fa-plus"></i>
-        </button>
+        <Button color="green" icon="fa-plus" />
     </form>
     <ul id="prompt-list">
         <Draggable :list="prompts" item-key="(elm) => { return elm; }">
@@ -34,10 +32,14 @@
         </div>
         <div class="form-control time-field">
             <label for="time-min">
-                Participant response minutes?
+                Participant response time? <i class="small">(mm:ss)</i>
             </label>
             <input v-model="options.participant_minutes" type="number" id="time-min" 
-                size="2" max="99" min="1" />
+                size="2" max="59" min="0" />
+            <b>:</b>
+            <span v-if="options.participant_seconds < 10">0</span>
+            <input v-model="options.participant_seconds" type="number" id="time-sec" 
+                size="2" max="59" min="0" />
         </div>
         <div class="form-control time-field">
             <label for="time-roundtable">
@@ -69,6 +71,7 @@ export default {
             options: {
                 host_participate: false,
                 participant_minutes: 1,
+                participant_seconds: 0,
                 roundtable_minutes: 30
             },
             prompts: [],
@@ -118,11 +121,11 @@ label[for='host-participate'] div {
     flex: 4;
     margin: 0;
 }
-#add-prompts-form button {
+#add-prompts-form ::v-deep(button.btn) {
     flex: 1;
     margin-right: 0;
     padding: 0;
-    font: 25px bold sans-serif;
+    font: 1.2rem bold sans-serif;
 }
 
 #prompt-list {

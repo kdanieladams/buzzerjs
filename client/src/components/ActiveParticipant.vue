@@ -7,10 +7,10 @@
             icon="fa-play" @btn-click="demoTimer" />
     </div>
     <br />
-    <p>Prompts:
-        <div v-for="(prompt, i) in session.prompts" class="small" 
-            style="background-color: #333; margin: 10px 0;"> 
-            {{ prompt.text }}
+    <p id="prompts">Prompts:
+        <div v-for="(prompt, i) in session.prompts" 
+            :class="i == 0 ? 'prompt active' : 'prompt'"> 
+            <i v-if="i == 0" class='fas fa-question'></i> {{ prompt.text }}
         </div>
     </p>
     <hr />
@@ -47,7 +47,7 @@ export default {
     },
     methods: {
         demoTimer() {
-            let maxSeconds = (this.session.participant_minutes * 60),
+            let maxSeconds = this.session.participant_seconds,
             currSeconds = maxSeconds;
         
             console.log('starting interval...');
@@ -64,3 +64,15 @@ export default {
     }
 }
 </script>
+
+<style scoped>
+.prompt {
+    background-color: #333; 
+    margin: 10px 0;
+    padding: 5px;
+}
+.prompt.active {
+    background-color: #777;
+    font-weight: bold;
+}
+</style>

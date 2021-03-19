@@ -50,7 +50,11 @@ function updateUserList(io, session_id) {
         session = getSession(session_id);
 
     if(session.user_id_order.length > 0) {
-        users = session.user_id_order.map((user_id) => {
+        let ordered_user_ids = session.user_id_order.filter(usr_id => {
+            return !!(users.find(user => user.id == usr_id));
+        });
+        
+        users = ordered_user_ids.map((user_id) => {
             return users.find(user => user.id == user_id);
         });
     }
@@ -128,8 +132,17 @@ io.on('connection', socket => {
             };
         });
         session.host_participate = options.host_participate;
-        session.participant_minutes = parseInt(options.participant_minutes);
+        session.participant_seconds = (parseInt(options.participant_minutes) * 60) 
+            + parseInt(options.participant_seconds);
         session.roundtable_minutes = parseInt(options.roundtable_minutes);
+
+        if(!session.host_participate) {
+            let hostIndex = session.user_id_order
+                .findIndex(user_id => user_id == session.host_id);
+
+            session.user_id_order.splice(hostIndex, 1);
+            updateUserList(io, session.id);
+        }
 
         io.to(session.id).emit('sessionStarted', session);
         // console.log(`session ${session.id} started...`, session, options);
