@@ -13,9 +13,10 @@
         </template>
         <template v-if="session_started">
             <ActiveParticipant v-if="!is_host" :session="active_session"
-                :users="users" />
+                :users="users" :active_user="active_user" />
             <ActiveHost v-if="is_host" :session="active_session"
-                :users="users" @user-sort="sortUsers" />
+                :users="users" :active_user="active_user" 
+                @user-sort="sortUsers" />
         </template>
     </template>
 </template>
@@ -43,6 +44,7 @@ export default {
             session_started: false,
             socket: null,
             users: [],
+            active_user: null,
             verified: false
         };
     },
@@ -105,6 +107,7 @@ export default {
         this.socket.on('userList', ({ session_id, users }) => {
             if(this.active_session && this.active_session.id == session_id) {
                 this.users = users;
+                this.active_user = users.find(usr => usr.state == 'active');
             }
         });
 
@@ -125,13 +128,5 @@ export default {
 <style scoped>
 ::v-deep(#user-list) {
     list-style-type: none;
-}
-::v-deep(#user-list li) {
-    font-size: 0.9rem;
-    padding: 5px;
-}
-::v-deep(#user-list li.active) {
-    background-color: #050;
-    font-weight: bold;
 }
 </style>

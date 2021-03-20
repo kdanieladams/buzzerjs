@@ -1,16 +1,15 @@
 <template>
     <h2 class="center">Session {{ session.id }} started!</h2>
-    <Timer ref="timer" :active_user="users[0]" 
+    <Timer ref="timer" :active_user="active_user" 
         :session="session" />
-    <div v-if="users.length > 0 && users[0].username == clientUser" class="center">
+    <div v-if="active_user && active_user.username == clientUser" class="center">
         <Button color="green" text="Ready" 
             icon="fa-play" @btn-click="demoTimer" />
     </div>
     <p>Prompts:
-        <div v-for="(prompt, i) in session.prompts" 
-            :class="i == 0 ? 'prompt active' : 'prompt'"> 
-            <i v-if="i == 0" class='fas fa-question'></i> {{ prompt.text }}
-        </div>
+        <template v-for="(prompt, i) in session.prompts">
+            <ItemPrompt :prompt="prompt" />
+        </template>
     </p>
     <hr />
     <p class="session-property">
@@ -34,12 +33,7 @@
     <ul id="user-list">
         <Draggable :list="users" item-key="id" @end="$emit('user-sort', users)">
             <template #item="{ element, index }">
-                <li :class="index == 0 ? 'active' : ''">
-                    <i v-if="index == 0" class="fas fa-user-clock"></i>
-                    <i v-if="index != 0" class="fas fa-user"></i>
-                    {{ element.username }}
-                    <i v-if="clientUser == element.username" class="small">(you)</i>
-                </li>
+                <ItemUser :user="element" :client_username="clientUser" />
             </template>
         </Draggable>
     </ul>
@@ -48,17 +42,22 @@
 <script>
 import draggable from 'vuedraggable';
 import Button from './Button';
+import ItemPrompt from './ItemPrompt';
+import ItemUser from './ItemUser';
 import Timer from './Timer';
 
 export default {
     name: 'ActiveHost',
     props: {
         session: Object,
-        users: Array
+        users: Array,
+        active_user: Object
     },
     components: {
         Draggable: draggable,
         Button,
+        ItemPrompt,
+        ItemUser,
         Timer
     },
     data() {
@@ -90,9 +89,6 @@ export default {
 </script>
 
 <style scoped>
-hr {
-    border-color: #999;
-}
 p.session-property {
     display: flex;
     justify-content: space-between;
@@ -101,16 +97,6 @@ p.session-property {
 p.session-property .value {
     font-weight: bold;
     color: #ccc;
-}
-
-.prompt {
-    background-color: #333; 
-    margin: 10px 0;
-    padding: 5px;
-}
-.prompt.active {
-    background-color: #777;
-    font-weight: bold;
 }
 
 #user-list li {

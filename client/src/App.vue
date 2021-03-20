@@ -67,6 +67,10 @@ header {
   text-align: center;
 }
 
+hr {
+    border-color: #999;
+}
+
 main { 
   border-radius: 10px;
   background-color: #121212;

@@ -1,43 +1,43 @@
 <template>
     <h2 class="center">Session has started!</h2>
-    <Timer ref="timer" :active_user="users[0]" 
+    <Timer ref="timer" :active_user="active_user" 
         :session="session" />
-    <div v-if="users.length > 0 && users[0].username == clientUser" class="center">
+    <div v-if="active_user && active_user.username == clientUser" class="center">
         <Button color="green" text="Ready" 
             icon="fa-play" @btn-click="demoTimer" />
     </div>
     <br />
-    <p id="prompts">Prompts:
-        <div v-for="(prompt, i) in session.prompts" 
-            :class="i == 0 ? 'prompt active' : 'prompt'"> 
-            <i v-if="i == 0" class='fas fa-question'></i> {{ prompt.text }}
-        </div>
+    <p>Prompts:
+        <template v-for="(prompt, i) in session.prompts">
+            <ItemPrompt :prompt="prompt" />
+        </template>
     </p>
     <hr />
     <p>Users:</p>
     <ul id="user-list">
-        <li v-for="(user, i) in users" 
-            :class="i == 0 ? 'active' : ''">
-            <i v-if="i == 0" class="fas fa-user-clock"></i>
-            <i v-if="i != 0" class="fas fa-user"></i>
-            {{ user.username }}
-            <i v-if="clientUser == user.username" class="small">(you)</i>
-        </li>
+        <template v-for="(user, i) in users">
+            <ItemUser :user="user" :client_username="clientUser" />
+        </template>
     </ul>
 </template>
 
 <script>
 import Button from './Button';
+import ItemPrompt from './ItemPrompt';
+import ItemUser from './ItemUser';
 import Timer from './Timer';
 
 export default {
     name: 'ActiveParticipant',
     props: {
         session: Object,
-        users: Array
+        users: Array,
+        active_user: Object
     },
     components: {
         Button,
+        ItemPrompt,
+        ItemUser,
         Timer
     },
     data() {
@@ -64,15 +64,3 @@ export default {
     }
 }
 </script>
-
-<style scoped>
-.prompt {
-    background-color: #333; 
-    margin: 10px 0;
-    padding: 5px;
-}
-.prompt.active {
-    background-color: #777;
-    font-weight: bold;
-}
-</style>

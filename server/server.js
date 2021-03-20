@@ -125,10 +125,11 @@ io.on('connection', socket => {
 
         // Translate session props
         session.started = true;
-        session.prompts = prompts.map(prompt => {
+        session.prompts = prompts.map((prompt, index) => {
             return { 
                 text: prompt, 
-                users_spoken: []
+                users_spoken: [],
+                state: index == 0 ? 'active' : ''
             };
         });
         session.host_participate = options.host_participate;
@@ -148,7 +149,7 @@ io.on('connection', socket => {
         // console.log(`session ${session.id} started...`, session, options);
     });
 
-    socket.on('buzzIn', () => {
+    socket.on('startTimer', () => {
         let user = getUserBySocket(socket.id);
         // ...
     });
