@@ -13,10 +13,12 @@
         </template>
         <template v-if="session_started">
             <ActiveParticipant v-if="!is_host" :session="active_session"
-                :users="users" :active_user="active_user" />
+                :users="users" :active_user="active_user" 
+                :curr_seconds="curr_seconds" @start-timer="startTimer" />
             <ActiveHost v-if="is_host" :session="active_session"
                 :users="users" :active_user="active_user" 
-                @user-sort="sortUsers" />
+                :curr_seconds="curr_seconds" @user-sort="sortUsers" 
+                @start-timer="startTimer" />
         </template>
     </template>
 </template>
@@ -39,16 +41,22 @@ export default {
     data() {
         return {
             active_session: null,
+            active_user: null,
+            curr_seconds: 0,
             is_host: false,
             session_id: '',
             session_started: false,
             socket: null,
             users: [],
-            active_user: null,
             verified: false
         };
     },
     methods: {
+        sortUsers(users) {
+            let new_user_id_order = users.map(user => user.id);
+
+            this.socket.emit('reorderUsers', new_user_id_order);
+        },
         startSession({ prompts, options }) {
             if(prompts.length > 0) {
                 this.socket.emit('startSession', { prompts, options });
@@ -57,10 +65,8 @@ export default {
                 alert('You must include at least one prompt.');
             }
         },
-        sortUsers(users) {
-            let new_user_id_order = users.map(user => user.id);
-
-            this.socket.emit('reorderUsers', new_user_id_order);
+        startTimer() {
+            this.socket.emit('startTimer');
         },
         verify(value, msg) {
             if(!value) {
@@ -74,7 +80,7 @@ export default {
     },
     created() {
         if(process.env.NODE_ENV == 'development')
-            this.socket = io(`http://${ process.env.VUE_APP_SERVER_ADDR }:${ process.env.VUE_APP_SERVER_PORT }`);
+            this.socket = io(`http://${ process.env.VUE_APP_SERVER_ADDR }`);
         else
             this.socket = io();
     },
@@ -109,6 +115,11 @@ export default {
                 this.users = users;
                 this.active_user = users.find(usr => usr.state == 'active');
             }
+        });
+
+        // Update timer
+        this.socket.on('advanceTimer', currSeconds => {
+            this.curr_seconds = currSeconds;
         });
 
         // Handle session end

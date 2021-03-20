@@ -1,4 +1,5 @@
 // NodeModule imports
+const dotenv = require('dotenv');
 const path = require('path');
 const http = require('http');
 const express = require('express');
@@ -22,7 +23,9 @@ const {
 } = require('./utils/sessions');
 
 // Config
+dotenv.config();
 const PORT = process.env.PORT || 3000;
+const DEV_CLIENT_ADDR = process.env.DEV_CLIENT_ADDR || 'localhost:8080'
 
 // Bootstrapping
 const app = express();
@@ -31,16 +34,14 @@ let io = null;
 
 // Allow CORS in Dev Mode
 if(process.env.NODE_ENV == 'development') {
-    console.log('NODE_ENV = development');
     io = socketio(server, {
         cors: {
-            origin: "http://localhost:8080",
+            origin: `http://${DEV_CLIENT_ADDR}`,
             methods: ["GET", "POST"]
         }
     });
 }
 else {
-    console.log('NODE_ENV = production');
     io = socketio(server);
 }
 
@@ -150,8 +151,47 @@ io.on('connection', socket => {
     });
 
     socket.on('startTimer', () => {
-        let user = getUserBySocket(socket.id);
-        // ...
+        let user = getUserBySocket(socket.id),
+            session = user ? getSession(user.session_id) : false;
+    
+        if(session && !session.timer) {
+            let currSeconds = session.participant_seconds;
+
+            console.log('emit advanceTimer...', currSeconds);
+            io.to(session.id).emit('advanceTimer', currSeconds);
+            
+            session.timer = setInterval(() => {
+                currSeconds--;
+                io.to(session.id).emit('advanceTimer', currSeconds);
+
+                if(currSeconds == 0) {
+                    let users = getSessionUsers(session.id),
+                        userIds = session.user_id_order,
+                        userIdIndex = userIds.findIndex(usrid => usrid == user.id),
+                        nextUser = users.find(usr => usr.id == userIds[userIdIndex + 1]);
+
+                    if(!nextUser) 
+                        nextUser = users.find(usr => usr.id == userIds[0]);
+
+                    // Reset the timer
+                    clearInterval(session.timer);
+                    session.timer = null;
+
+                    console.log('nextUser...', nextUser.username, 
+                        userIdIndex, userIds);
+
+                    // Activate the next user
+                    user.state = 'spoken';
+                    nextUser.state = 'active';
+                    
+                    // Reset the visual timer
+                    setTimeout(() => {
+                        updateUserList(io, session.id);
+                        io.to(session.id).emit('advanceTimer', session.participant_seconds);
+                    }, 2500);
+                }
+            }, 1000);
+        }
     });
 
     socket.on('reorderUsers', (new_user_id_order) => {

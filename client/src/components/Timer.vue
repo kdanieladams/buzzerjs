@@ -13,7 +13,8 @@ export default {
     name: 'Timer',
     props: { 
         active_user: Object,
-        session: Object
+        session: Object,
+        curr_seconds: Number
     },
     data() {
         return {
@@ -54,6 +55,9 @@ export default {
     },
     mounted() {
         this.initTimer();
+        this.$watch('curr_seconds', (newVal, oldVal) => {
+            this.cycleTimer(newVal);
+        });
     }
 }
 </script>

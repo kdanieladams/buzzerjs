@@ -1,10 +1,10 @@
 <template>
     <h2 class="center">Session has started!</h2>
     <Timer ref="timer" :active_user="active_user" 
-        :session="session" />
+        :session="session" :curr_seconds="curr_seconds" />
     <div v-if="active_user && active_user.username == clientUser" class="center">
         <Button color="green" text="Ready" 
-            icon="fa-play" @btn-click="demoTimer" />
+            icon="fa-play" @btn-click="$emit('start-timer')" />
     </div>
     <br />
     <p>Prompts:
@@ -30,9 +30,10 @@ import Timer from './Timer';
 export default {
     name: 'ActiveParticipant',
     props: {
+        active_user: Object,
+        curr_seconds: Number,
         session: Object,
-        users: Array,
-        active_user: Object
+        users: Array
     },
     components: {
         Button,
@@ -61,6 +62,7 @@ export default {
                     clearInterval(interval);                
             }, 1000);
         }
-    }
+    },
+    emits: [ 'start-timer' ]
 }
 </script>
