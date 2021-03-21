@@ -1,10 +1,13 @@
 <template>
-    <h2 class="center">Session has started!</h2>
+    <h2 class="center">Session {{ session.id }}</h2>
+    <h5 class="center">{{ session.state }} stage</h5>
     <Timer ref="timer" :active_user="active_user" 
         :session="session" :curr_seconds="curr_seconds" />
     <div v-if="active_user && active_user.username == clientUser" class="center">
-        <Button color="green" text="Ready" 
-            icon="fa-play" @btn-click="$emit('start-timer')" />
+        <Button v-if="!timerStarted" color="green" text="Ready" 
+            icon="fa-play" @btn-click="startTimer" />
+        <Button v-if="timerStarted && curr_seconds != 0" color="#ad6f00" text="Yield Time" 
+            icon="fa-pause" @btn-click="startTimer" />
     </div>
     <br />
     <p>Prompts:
@@ -43,26 +46,28 @@ export default {
     },
     data() {
         return {
-            clientUser: sessionStorage.getItem('username')
+            clientUser: sessionStorage.getItem('username'),
+            timerStarted: false
         };
     },
-    methods: {
-        demoTimer() {
-            let maxSeconds = this.session.participant_seconds,
-            currSeconds = maxSeconds;
-        
-            console.log('starting interval...');
-
-            let interval = setInterval(() => {
-                currSeconds--;
-                this.$refs.timer.cycleTimer(currSeconds, maxSeconds);
-                // console.log('cycle interval...', currSeconds);
-                
-                if(currSeconds == 0) 
-                    clearInterval(interval);                
-            }, 1000);
+    methods: { 
+        startTimer() {
+            this.$emit('start-timer');
+            this.timerStarted = true;
         }
+    },
+    mounted(){
+        this.$watch('active_user', () => {
+            this.timerStarted = false;
+        });
     },
     emits: [ 'start-timer' ]
 }
 </script>
+
+<style scoped>
+h5 {
+    text-transform: uppercase;
+    font-size: 0.8rem;
+}
+</style>

@@ -1,6 +1,6 @@
 <template>
     <div :class="'prompt ' + prompt.state">
-        <i v-if="prompt.state == 'active'" class="fas fa-question"></i> 
+        <i v-if="prompt.state == 'active'" class="far fa-question-circle"></i> 
         {{ prompt.text }}
     </div>
 </template>
@@ -23,5 +23,8 @@ export default {
 .prompt.active {
     background-color: #777;
     font-weight: bold;
+}
+.prompt.finished {
+    color: #555;
 }
 </style>

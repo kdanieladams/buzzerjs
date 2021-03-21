@@ -1,16 +1,28 @@
 <template>
-    <h2 class="center">Session {{ session.id }} started!</h2>
+    <h2 class="center">Session {{ session.id }}</h2>
+    <h5 class="center" id="session-state">{{ session.state }} stage</h5>
     <Timer ref="timer" :active_user="active_user" 
         :session="session" :curr_seconds="curr_seconds" />
     <div v-if="active_user && active_user.username == clientUser" class="center">
-        <Button color="green" text="Ready" 
-            icon="fa-play" @btn-click="$emit('start-timer')" />
+        <Button v-if="!timerStarted" color="green" text="Ready" 
+            icon="fa-play" @btn-click="startTimer" />
+        <Button v-if="timerStarted && curr_seconds != 0" color="#ad6f00" text="Yield Time" 
+            icon="fa-pause" @btn-click="startTimer" />
     </div>
     <p>Prompts:
         <template v-for="(prompt, i) in session.prompts">
             <ItemPrompt :prompt="prompt" />
         </template>
     </p>
+    <hr />
+    <p>Users:</p>
+    <ul id="user-list">
+        <Draggable :list="users" item-key="id" @end="$emit('user-sort', users)">
+            <template #item="{ element, index }">
+                <ItemUser :user="element" :client_username="clientUser" />
+            </template>
+        </Draggable>
+    </ul>
     <hr />
     <p class="session-property">
         Host is participating? 
@@ -28,15 +40,16 @@
         Roudtable time:
         <span class="value">{{ session.roundtable_minutes }}:00</span>
     </p>
-    <hr />
-    <p>Users:</p>
-    <ul id="user-list">
-        <Draggable :list="users" item-key="id" @end="$emit('user-sort', users)">
-            <template #item="{ element, index }">
-                <ItemUser :user="element" :client_username="clientUser" />
-            </template>
-        </Draggable>
-    </ul>
+    <div class="right">
+        <template v-if="session.state == 'started'">
+            <Button text="Next User" icon="fa-angle-double-right" /> 
+            <Button text="Next Prompt" icon="fa-angle-double-right" 
+                @btn-click="$emit('advance-prompt')" />
+        </template>
+        <Button :text="btnPrimaryProps.text" :color="btnPrimaryProps.color" 
+            :icon="btnPrimaryProps.icon" :icon_before="btnPrimaryProps.icon_before"
+            @btn-click="btnPrimaryClick" />
+    </div>
 </template>
 
 <script>
@@ -64,32 +77,76 @@ export default {
     data() {
         return {
             clientUser: sessionStorage.getItem('username'),
-            translatedSeconds: '0:00'
+            translatedSeconds: '0:00',
+            timerStarted: false,
+            btnPrimaryProps: {
+                text: 'Begin Debate',
+                color: 'green',
+                icon: 'fa-angle-double-right',
+                icon_before: false
+            }
         }
     },
-    methods: {
-        demoTimer() {
-            let maxSeconds = this.session.participant_seconds,
-            currSeconds = maxSeconds;
+    methods: { 
+        btnPrimaryClick() {
+            if(this.session.state == 'closing') {
+                this.$router.push('/');
+                return;
+            }
 
-            let interval = setInterval(() => {
-                currSeconds--;
-                this.$refs.timer.cycleTimer(currSeconds, maxSeconds);
-                // console.log('cycle interval...', currSeconds);
-                
-                if(currSeconds == 0) 
-                    clearInterval(interval);                
-            }, 1000);
+            this.$emit('advance-session');
+        },
+        startTimer() {
+            this.$emit('start-timer');
+            this.timerStarted = true;
         }
     },
     mounted() {
         this.translatedSeconds = this.$refs.timer.translateSeconds(this.session.participant_seconds);
+        this.$watch('active_user', () => {
+                this.timerStarted = false;
+        });    
+        this.$watch('session', (newSession, oldSession) => {
+            if(newSession.state == 'opening') {
+                this.btnPrimaryProps = {
+                    text: 'Begin Debate',
+                    color: 'green',
+                    icon: 'fa-angle-double-right',
+                    icon_before: false
+                };
+            }
+            else if(newSession.state == 'started') {
+                this.btnPrimaryProps = {
+                    text: 'End Debate',
+                    color: '#900',
+                    icon: 'fa-stop-circle',
+                    icon_before: true
+                };
+            }
+            else {
+                this.btnPrimaryProps = {
+                    text: 'Go Back',
+                    icon: 'fa-angle-double-left',
+                    icon_before: true
+                };
+            }
+        });
     },
-    emits: [ 'user-sort' ]
+    emits: [ 
+        'advance-prompt', 
+        'advance-session', 
+        'start-timer', 
+        'user-sort' 
+    ]
 }
 </script>
 
 <style scoped>
+h5 {
+    text-transform: uppercase;
+    font-size: 0.8rem;
+}
+
 p.session-property {
     display: flex;
     justify-content: space-between;
@@ -100,6 +157,9 @@ p.session-property .value {
     color: #ccc;
 }
 
+#user-list {
+    margin-bottom: 15px;
+}
 #user-list li {
     cursor: move;
 }

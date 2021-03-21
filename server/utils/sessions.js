@@ -11,7 +11,7 @@ function createSession(session_id, host_id) {
             host_participate: false,
             participant_seconds: 0,
             roundtable_minutes: 0,
-            started: false,
+            state: '', // '', 'opening', 'started', 'closing'
             timer: null,
             user_id_order: []
         };

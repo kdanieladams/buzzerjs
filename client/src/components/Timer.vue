@@ -30,9 +30,6 @@ export default {
             this.circleTimer.setText(this.translateSeconds(currSeconds));
         },
         initTimer() {
-            // let timerInterval = null;
-            let maxSeconds = this.session.participant_seconds;
-
             this.circleTimer = new ProgressBar.Circle('#timer', {
                 strokeWidth: 2,
                 easing: 'easeInOut',
@@ -42,7 +39,7 @@ export default {
                 trailWidth: 1
             });
 
-            this.cycleTimer(maxSeconds, maxSeconds);
+            this.cycleTimer(0, this.session.participant_seconds);
         },
         translateSeconds(seconds) {
             let minutes = Math.floor(seconds / 60);
@@ -73,7 +70,7 @@ export default {
 
 #timer #active-user {
     position: absolute;
-    bottom: 25px;
+    bottom: 45px;
     width: 100%;
     font-size: 1rem;
     text-align: center;

@@ -10,7 +10,7 @@
                 autocomplete="off"
             />
         </div>
-        <Button color="green" icon="fa-plus" />
+        <Button icon="fa-plus" />
     </form>
     <ul id="prompt-list">
         <Draggable :list="prompts" item-key="(elm) => { return elm; }">
@@ -50,7 +50,7 @@
         </div>
     </form>
     <div class="center">
-        <Button text="Start Session" color="#900" icon="fa-play" 
+        <Button text="Start Session" color="green" icon="fa-play" 
             @btn-click="$emit('begin-session', { prompts: prompts, options: options })" />
     </div>
 </template>

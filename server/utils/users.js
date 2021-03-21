@@ -19,16 +19,10 @@ function userJoin(username, ip, session_id, socket_id) {
         ip, 
         session_id,
         socket_id,
-        state: ''
+        state: '' // '', 'active', 'spoken'
     };
 
     users.push(user);
-    // !!! TEMPORARY
-    users.forEach(user => user.state = '');
-    users[users.length - 1].state = 'active';
-    users[0].state = 'spoken';
-    // TEMPORARY !!!
-
     console.log(`user joined ${session_id}`, user.username, user.id, user.ip);
     return user;
 }

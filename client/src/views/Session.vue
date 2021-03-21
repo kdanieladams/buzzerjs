@@ -1,6 +1,6 @@
 <template>
     <router-link v-if="is_host || session_started" to="/">
-        &lt;&lt; Cancel
+        <i class="fas fa-angle-double-left"></i> Cancel
     </router-link>
     <p v-if="!verified" class="center">
         Attempting to connect...
@@ -18,7 +18,8 @@
             <ActiveHost v-if="is_host" :session="active_session"
                 :users="users" :active_user="active_user" 
                 :curr_seconds="curr_seconds" @user-sort="sortUsers" 
-                @start-timer="startTimer" />
+                @start-timer="startTimer" @advance-session="advanceSession"
+                @advance-prompt="advancePrompt" />
         </template>
     </template>
 </template>
@@ -52,6 +53,12 @@ export default {
         };
     },
     methods: {
+        advancePrompt() {
+            this.socket.emit('advancePrompt');
+        },
+        advanceSession() {
+            this.socket.emit('advanceSession');
+        },
         sortUsers(users) {
             let new_user_id_order = users.map(user => user.id);
 
@@ -115,6 +122,11 @@ export default {
                 this.users = users;
                 this.active_user = users.find(usr => usr.state == 'active');
             }
+        });
+
+        // Update session properties
+        this.socket.on('updateSession', session => {
+            this.active_session = session;
         });
 
         // Update timer
