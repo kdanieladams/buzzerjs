@@ -1,8 +1,8 @@
 <template>
     <h2 class="center">Session {{ session.id }}</h2>
     <h5 class="center">{{ session.state }} stage</h5>
-    <Timer ref="timer" :active_user="active_user" 
-        :session="session" :curr_seconds="curr_seconds" />
+    <Timer ref="timer" :active_user="active_user" :session="session" 
+        :curr_seconds="curr_seconds" :max_seconds="max_seconds" />
     <div v-if="active_user && active_user.username == clientUser" class="center">
         <Button v-if="!timerStarted" color="green" text="Ready" 
             icon="fa-play" @btn-click="startTimer" />
@@ -35,6 +35,7 @@ export default {
     props: {
         active_user: Object,
         curr_seconds: Number,
+        max_seconds: Number,
         session: Object,
         users: Array
     },

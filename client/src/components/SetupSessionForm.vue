@@ -49,6 +49,14 @@
                 size="2" max="99" min="0" />
         </div>
     </form>
+    <p>Users (<i class="small">drag and drop to sort</i>):</p>
+    <ul id="user-list">
+        <Draggable :list="users" item-key="id" @end="$emit('user-sort', users)">
+            <template #item="{ element, index }">
+                <ItemUser :user="element" :client_username="clientUser" />
+            </template>
+        </Draggable>
+    </ul>
     <div class="center">
         <Button text="Start Session" color="green" icon="fa-play" 
             @btn-click="$emit('begin-session', { prompts: prompts, options: options })" />
@@ -58,18 +66,24 @@
 <script>
 import draggable from 'vuedraggable';
 import Button from './Button';
+import ItemUser from './ItemUser';
 
 export default {
     name: "SetupSessionForm",
+    props: {
+        users: Array
+    },
     components: {
         Draggable: draggable,
-        Button
+        Button,
+        ItemUser
     },
     data() {
         return {
+            clientUser: sessionStorage.getItem('username'),
             newPrompt: '',
             options: {
-                host_participate: false,
+                host_participate: true,
                 participant_minutes: 1,
                 participant_seconds: 0,
                 roundtable_minutes: 30
@@ -96,7 +110,7 @@ export default {
     created() {
         this.session_id = this.$route.params.session_id;
     },
-    emits: [ 'begin-session' ]
+    emits: [ 'begin-session', 'user-sort' ]
 }
 </script>
 
@@ -154,6 +168,13 @@ label[for='host-participate'] div {
 
 #options-form {
     margin-bottom: 30px;
+}
+
+#user-list li {
+    cursor: move;
+}
+#user-list li:hover {
+    background-color: #555;
 }
 
 .time-field {

@@ -1,9 +1,9 @@
 <template>
     <h2 class="center">Session {{ session.id }}</h2>
     <h5 class="center" id="session-state">{{ session.state }} stage</h5>
-    <Timer ref="timer" :active_user="active_user" 
-        :session="session" :curr_seconds="curr_seconds" />
-    <div v-if="active_user && active_user.username == clientUser" class="center">
+    <Timer ref="timer" :active_user="active_user" :session="session" 
+        :curr_seconds="curr_seconds" :max_seconds="max_seconds" />
+    <div v-if="showTimerBtn" class="center">
         <Button v-if="!timerStarted" color="green" text="Ready" 
             icon="fa-play" @btn-click="startTimer" />
         <Button v-if="timerStarted && curr_seconds != 0" color="#ad6f00" text="Yield Time" 
@@ -17,11 +17,9 @@
     <hr />
     <p>Users:</p>
     <ul id="user-list">
-        <Draggable :list="users" item-key="id" @end="$emit('user-sort', users)">
-            <template #item="{ element, index }">
-                <ItemUser :user="element" :client_username="clientUser" />
-            </template>
-        </Draggable>
+        <template v-for="(user, i) in users">
+            <ItemUser :user="user" :client_username="clientUser" />
+        </template>
     </ul>
     <hr />
     <p class="session-property">
@@ -37,7 +35,7 @@
         </span>
     </p>
     <p class="session-property">
-        Roudtable time:
+        Roundtable time:
         <span class="value">{{ session.roundtable_minutes }}:00</span>
     </p>
     <div class="right">
@@ -53,7 +51,6 @@
 </template>
 
 <script>
-import draggable from 'vuedraggable';
 import Button from './Button';
 import ItemPrompt from './ItemPrompt';
 import ItemUser from './ItemUser';
@@ -64,11 +61,11 @@ export default {
     props: {
         active_user: Object,
         curr_seconds: Number,
+        max_seconds: Number,
         session: Object,
         users: Array,
     },
     components: {
-        Draggable: draggable,
         Button,
         ItemPrompt,
         ItemUser,
@@ -85,6 +82,15 @@ export default {
                 icon: 'fa-angle-double-right',
                 icon_before: false
             }
+        }
+    },
+    computed: {
+        showTimerBtn() {
+            let activePrompt = this.session.prompts
+                .find(p => p.state == 'active' || p.state == 'roundtable');
+            
+            return (this.active_user && this.active_user.username == this.clientUser) 
+                || (activePrompt && activePrompt.state == 'roundtable');
         }
     },
     methods: { 
@@ -135,8 +141,7 @@ export default {
     emits: [ 
         'advance-prompt', 
         'advance-session', 
-        'start-timer', 
-        'user-sort' 
+        'start-timer'
     ]
 }
 </script>
@@ -159,8 +164,5 @@ p.session-property .value {
 
 #user-list {
     margin-bottom: 15px;
-}
-#user-list li {
-    cursor: move;
 }
 </style>

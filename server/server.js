@@ -157,7 +157,8 @@ io.on('connection', socket => {
     socket.on('advanceSession', () => {
         let user = getUserBySocket(socket.id),
             session = getSession(user.session_id),
-            users = sortUsers(session.id);
+            users = sortUsers(session.id),
+            currSeconds = 0;
         
         // Advance session state
         session.state = session.state == 'opening' ? 'started' : 'closing';
@@ -166,20 +167,24 @@ io.on('connection', socket => {
             // Activate first prompt and user
             users[0].state = 'active';
             session.prompts[0].state = 'active';
-            io.to(session.id).emit('advanceTimer', session.participant_seconds);
+            currSeconds = session.participant_seconds;
         }
         else if(session.state == 'closing') {
             // Advance all prompts, clear active user
-            users.forEach(user => user.state = '');
+            users.forEach(user => user.state = 'spoken');
             session.prompts.forEach(prompt => prompt.state = 'finished');
+            
             // Reset the timer
             clearInterval(session.timer);
-            io.to(session.id).emit('advanceTimer', 0);
         }
 
         // console.log('advanceSession...', getSessionUsers(session.id));
 
         // Emit updated info
+        io.to(session.id).emit('advanceTimer', { 
+            currSeconds: currSeconds, 
+            maxSeconds: session.participant_seconds 
+        });
         updateUserList(io, session.id);
         io.to(session.id).emit('updateSession', session);
     });
@@ -189,40 +194,80 @@ io.on('connection', socket => {
             session = user ? getSession(user.session_id) : false;
     
         if(session && !session.timer) {
-            let currSeconds = session.participant_seconds;
+            let prompt = session.prompts
+                .find(prompt => prompt.state == 'active' || prompt.state == 'roundtable');
+            let maxSeconds = prompt.state == 'active' ? session.participant_seconds 
+                : (session.roundtable_minutes * 60),
+                currSeconds = maxSeconds,
+                timer = null;
 
             // console.log('emit advanceTimer...', currSeconds);
-            io.to(session.id).emit('advanceTimer', currSeconds);
+            io.to(session.id).emit('advanceTimer', { currSeconds, maxSeconds });
             
-            session.timer = setInterval(() => {
+            timer = setInterval(() => {
+                // Cycle timer
                 currSeconds--;
-                io.to(session.id).emit('advanceTimer', currSeconds);
+                io.to(session.id).emit('advanceTimer', { currSeconds, maxSeconds });
 
+                // Finish timer
                 if(currSeconds == 0) {
                     let users = sortUsers(session.id),
                         userIdIndex = users.findIndex(usr => usr.id == user.id),
-                        nextUser = users[userIdIndex + 1];
+                        nextUser = users[userIdIndex + 1],
+                        promptIndex = session.prompts.findIndex(prompt => prompt.state == 'active' 
+                            || prompt.state == 'roundtable'),
+                        prompt = session.prompts[promptIndex];
 
                     // Reset the timer
                     clearInterval(session.timer);
                     session.timer = null;
 
-                    // console.log('nextUser...', nextUser.username, 
-                    //     userIdIndex, userIds);
+                    // Update current user
+                    user.state = 'spoken';
 
                     // Activate the next user
-                    user.state = 'spoken';
-                    if(nextUser)
+                    if(nextUser) {
                         nextUser.state = 'active';
+                    }
+
+                    // Update prompt state
+                    if(prompt.state == 'roundtable') {
+                        let promptIndex = session.prompts.findIndex(p => p.text == prompt.text),
+                            nextPrompt = session.prompts[promptIndex + 1];
+                        
+                        prompt.state = 'finished';
+                        maxSeconds = 0;
+
+                        console.log('Timer finished...', prompt, nextPrompt);
+
+                        // Update nextPrompt
+                        if(nextPrompt) {    
+                            nextPrompt.state = 'active';
+                            users.forEach(user => user.state = '');
+                            users[0].state = 'active';
+                            maxSeconds = session.participant_seconds;
+                        } else {
+                            // Advance the session to 'closing'
+                            session.state = 'closing';
+                            users.forEach(user => user.state = 'spoken');
+                        }
+                    } else if(prompt.state == 'active' && !nextUser) {
+                        prompt.state = 'roundtable';
+                        users.forEach(user => user.state = '');
+                        maxSeconds = (session.roundtable_minutes * 60);
+                    } else if(!prompt) {
+                        // ...
+                    } 
                     
-                    // Reset the visual timer
+                    // Update the UI
                     setTimeout(() => {
                         updateUserList(io, session.id);
-                        if(nextUser)
-                            io.to(session.id).emit('advanceTimer', session.participant_seconds);
+                        io.to(session.id).emit('advanceTimer', { currSeconds: maxSeconds, maxSeconds });
+                        io.to(session.id).emit('updateSession', session);
                     }, 2500);
                 }
             }, 1000);
+            session.timer = parseInt(timer);
         }
     });
 
@@ -255,30 +300,46 @@ io.on('connection', socket => {
         let user = getUserBySocket(socket.id),
             session = getSession(user.session_id),
             users = sortUsers(session.id),
-            activePromptIndex = session.prompts.findIndex(prompt => prompt.state == 'active'),
+            activePromptIndex = session.prompts
+                .findIndex(prompt => prompt.state == 'active' || prompt.state == 'roundtable'),
             activePrompt = session.prompts[activePromptIndex],
-            nextPrompt = session.prompts[activePromptIndex + 1];
+            nextPrompt = session.prompts[activePromptIndex + 1],
+            maxSeconds = session.roundtable_minutes * 60;
 
         if(activePrompt) {
-            activePrompt.state = 'finished';
+            activePrompt.state = (activePrompt.state == 'active') ? 'roundtable' : 'finished';
         
-            if(nextPrompt) {
+            clearInterval(session.timer);
+            session.timer = null;
+            users.forEach(user => user.state = '');
+            updateUserList(io, session.id);
+
+            if(nextPrompt && activePrompt.state == 'finished') {
                 nextPrompt.state = 'active';
-                users.forEach(user => user.state = '');
-                
-                clearInterval(session.timer);
-                session.timer = null;
-
-                updateUserList(io, session.id);
-
-                setTimeout(() => {
-                    users[0].state = 'active';
-                    updateUserList(io, session.id);
-                    io.to(session.id).emit('advanceTimer', session.participant_seconds);
-                }, 2500);
+                maxSeconds = session.participant_seconds;
             }
 
-            io.to(session.id).emit('updateSession', session);
+            setTimeout(() => {
+                let currSeconds = 0;
+                
+                if(nextPrompt && nextPrompt.state == 'active') {
+                    // Activate nextPrompt
+                    users[0].state = 'active';
+                    currSeconds = session.participant_seconds;
+                } else if(activePrompt.state == 'finished'){
+                    // Close the session
+                    session.state = 'closing';
+                    users.forEach(user => user.state = 'spoken');
+                    session.prompts.forEach(prompt => prompt.state = 'finished');
+                } else {
+                    // Advance prompt to roundtable
+                    currSeconds = (session.roundtable_minutes * 60);
+                }
+
+                updateUserList(io, session.id);
+                io.to(session.id).emit('advanceTimer', { currSeconds, maxSeconds });
+                io.to(session.id).emit('updateSession', session);    
+            }, 2500);
         }
     });
 

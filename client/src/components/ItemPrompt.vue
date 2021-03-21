@@ -1,6 +1,7 @@
 <template>
     <div :class="'prompt ' + prompt.state">
-        <i v-if="prompt.state == 'active'" class="far fa-question-circle"></i> 
+        <i v-if="prompt.state == 'active' || prompt.state == 'roundtable'" 
+            class="far fa-question-circle"></i> 
         {{ prompt.text }}
     </div>
 </template>
@@ -22,6 +23,11 @@ export default {
 }
 .prompt.active {
     background-color: #777;
+    font-weight: bold;
+}
+.prompt.roundtable {
+    background-color: #121212;
+    border: solid 1px #777;
     font-weight: bold;
 }
 .prompt.finished {

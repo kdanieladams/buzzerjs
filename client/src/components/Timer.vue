@@ -1,7 +1,7 @@
 <template>
     <div id="timer">
-        <div v-if="active_user" id="active-user">
-            {{ active_user.username }}
+        <div id="timer-text">
+            {{ timerText }}
         </div>
     </div>
 </template>
@@ -14,7 +14,8 @@ export default {
     props: { 
         active_user: Object,
         session: Object,
-        curr_seconds: Number
+        curr_seconds: Number,
+        max_seconds: Number
     },
     data() {
         return {
@@ -23,7 +24,7 @@ export default {
     },
     methods: {
         cycleTimer(currSeconds, maxSeconds) {
-            maxSeconds = maxSeconds || this.session.participant_seconds;
+            maxSeconds = maxSeconds || this.max_seconds;
             currSeconds = currSeconds || 0;
 
             this.circleTimer.animate(currSeconds/maxSeconds);
@@ -50,11 +51,28 @@ export default {
             return minutes + ":" + seconds;
         }
     },
+    computed: {
+        timerText() {
+            let roundtablePrompt = this.session.prompts.find(p => p.state == 'roundtable');
+            return roundtablePrompt ? 'Roundtable Discussion' 
+                : (this.active_user) ? this.active_user.username : ''
+        }
+    },
     mounted() {
         this.initTimer();
         this.$watch('curr_seconds', (newVal, oldVal) => {
             this.cycleTimer(newVal);
         });
+        // this.$watch(['active_user', 'session'], (newVals, oldVals) => {
+        //     let roundtablePrompt = newVals[1].prompts.find(p => p.state == 'roundtable');
+
+        //     console.log('Timer: watch(session)...', newVals);
+
+        //     if(roundtablePrompt)
+        //         this.timerText = 'Roundtable Discussion';
+        //     else if(newVals[0])
+        //         this.timerText = newVals[0].username;
+        // });
     }
 }
 </script>
@@ -68,7 +86,7 @@ export default {
     font-size: 2rem;
 }
 
-#timer #active-user {
+#timer #timer-text {
     position: absolute;
     bottom: 45px;
     width: 100%;

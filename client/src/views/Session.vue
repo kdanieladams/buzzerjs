@@ -8,17 +8,18 @@
     <template v-if="verified">
         <template v-if="!session_started">
             <WaitingRoom v-if="!is_host" />
-            <SetupSessionForm v-if="is_host" 
-                @begin-session="startSession" />
+            <SetupSessionForm v-if="is_host" :users="users"
+                @begin-session="startSession" @user-sort="sortUsers" />
         </template>
         <template v-if="session_started">
             <ActiveParticipant v-if="!is_host" :session="active_session"
                 :users="users" :active_user="active_user" 
-                :curr_seconds="curr_seconds" @start-timer="startTimer" />
+                :curr_seconds="curr_seconds" :max_seconds="max_seconds" 
+                @start-timer="startTimer" />
             <ActiveHost v-if="is_host" :session="active_session"
                 :users="users" :active_user="active_user" 
-                :curr_seconds="curr_seconds" @user-sort="sortUsers" 
-                @start-timer="startTimer" @advance-session="advanceSession"
+                :curr_seconds="curr_seconds" :max_seconds="max_seconds" 
+                @start-timer="startTimer" @advance-session="advanceSession" 
                 @advance-prompt="advancePrompt" />
         </template>
     </template>
@@ -44,6 +45,7 @@ export default {
             active_session: null,
             active_user: null,
             curr_seconds: 0,
+            max_seconds: 0,
             is_host: false,
             session_id: '',
             session_started: false,
@@ -130,8 +132,9 @@ export default {
         });
 
         // Update timer
-        this.socket.on('advanceTimer', currSeconds => {
+        this.socket.on('advanceTimer', ({ currSeconds, maxSeconds }) => {
             this.curr_seconds = currSeconds;
+            this.max_seconds = maxSeconds;
         });
 
         // Handle session end
