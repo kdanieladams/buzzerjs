@@ -15,12 +15,12 @@
             <ActiveParticipant v-if="!is_host" :session="active_session"
                 :users="users" :active_user="active_user" 
                 :curr_seconds="curr_seconds" :max_seconds="max_seconds" 
-                @start-timer="startTimer" />
+                @start-timer="startTimer" @advance-user="advanceUser" />
             <ActiveHost v-if="is_host" :session="active_session"
                 :users="users" :active_user="active_user" 
                 :curr_seconds="curr_seconds" :max_seconds="max_seconds" 
                 @start-timer="startTimer" @advance-session="advanceSession" 
-                @advance-prompt="advancePrompt" />
+                @advance-prompt="advancePrompt" @advance-user="advanceUser" />
         </template>
     </template>
 </template>
@@ -60,6 +60,9 @@ export default {
         },
         advanceSession() {
             this.socket.emit('advanceSession');
+        },
+        advanceUser() {
+            this.socket.emit('advanceUser');
         },
         sortUsers(users) {
             let new_user_id_order = users.map(user => user.id);

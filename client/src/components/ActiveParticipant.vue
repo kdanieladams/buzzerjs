@@ -7,7 +7,7 @@
         <Button v-if="!timerStarted" color="green" text="Ready" 
             icon="fa-play" @btn-click="startTimer" />
         <Button v-if="timerStarted && curr_seconds != 0" color="#ad6f00" text="Yield Time" 
-            icon="fa-pause" @btn-click="startTimer" />
+            icon="fa-pause" @btn-click="$emit('advance-user')" />
     </div>
     <br />
     <p>Prompts:
@@ -62,7 +62,7 @@ export default {
             this.timerStarted = false;
         });
     },
-    emits: [ 'start-timer' ]
+    emits: [ 'advance-user', 'start-timer' ]
 }
 </script>
 

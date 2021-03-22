@@ -6,8 +6,8 @@
     <div v-if="showTimerBtn" class="center">
         <Button v-if="!timerStarted" color="green" text="Ready" 
             icon="fa-play" @btn-click="startTimer" />
-        <Button v-if="timerStarted && curr_seconds != 0" color="#ad6f00" text="Yield Time" 
-            icon="fa-pause" @btn-click="startTimer" />
+        <Button v-if="timerStarted && curr_seconds != 0 && !isRoundtable" color="#ad6f00" text="Yield Time" 
+            icon="fa-pause" @btn-click="$emit('advance-user')" />
     </div>
     <p>Prompts:
         <template v-for="(prompt, i) in session.prompts">
@@ -40,7 +40,8 @@
     </p>
     <div class="right">
         <template v-if="session.state == 'started'">
-            <Button text="Next User" icon="fa-angle-double-right" /> 
+            <Button v-if="!isRoundtable" text="Next User" icon="fa-angle-double-right"
+                @btn-click="$emit('advance-user')" /> 
             <Button text="Next Prompt" icon="fa-angle-double-right" 
                 @btn-click="$emit('advance-prompt')" />
         </template>
@@ -91,6 +92,10 @@ export default {
             
             return (this.active_user && this.active_user.username == this.clientUser) 
                 || (activePrompt && activePrompt.state == 'roundtable');
+        },
+        isRoundtable() {
+            let roundtableIndex = this.session.prompts.findIndex(p => p.state == 'roundtable');
+            return (roundtableIndex != -1);
         }
     },
     methods: { 
@@ -141,6 +146,7 @@ export default {
     emits: [ 
         'advance-prompt', 
         'advance-session', 
+        'advance-user',
         'start-timer'
     ]
 }
