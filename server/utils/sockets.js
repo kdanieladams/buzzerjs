@@ -1,4 +1,9 @@
 /**
+ * NodeModule imports
+ */
+const dotenv = require('dotenv');
+
+/**
  * App Imports
  */
 const {
@@ -18,8 +23,127 @@ const {
 } = require('./sessions');
 
 /**
+ * Config
+ */
+dotenv.config();
+const UI_TIMEOUT = process.env.UI_TIMEOUT || 1500;
+
+/**
  * Websocket utilities
  */
+function advanceUser(session) { 
+    let {
+        currUser,
+        nextUser,
+        activePrompt,
+    } = getSessionState(session);
+
+    resetTimer(session);
+
+    if(activePrompt && currUser) {
+        // Update current user
+        currUser.state = 'spoken';
+
+        if(nextUser) {
+            // Activate the next user
+            nextUser.state = 'active';
+        } else {
+            // Advance prompt if at end of user list
+            advancePrompt(session);
+        }
+    }
+}
+function advancePrompt(session) { 
+    let {
+        activePrompt,
+        nextPrompt,
+        users
+    } = getSessionState(session),
+    maxSeconds = (session.roundtable_minutes * 60);
+
+    if(activePrompt) {
+        activePrompt.state = (activePrompt.state == 'active' && maxSeconds != 0) 
+            ? 'roundtable' : 'finished';
+
+        resetTimer(session);
+        users.forEach(user => user.state = '');
+
+        if(nextPrompt && (activePrompt.state == 'finished' || maxSeconds == 0)) {
+            // Activate nextPrompt
+            nextPrompt.state = 'active';
+            users[0].state = 'active';
+        } else if(activePrompt.state == 'finished'){
+            // Advance the session
+            advanceSession(session);
+        } 
+    }
+}
+function advanceSession(session) { 
+    let users = sortUsers(session.id);
+
+    // Advance session state
+    session.state = (session.state == 'opening') ? 'started' : 'closing';
+
+    if(session.state == 'started') {
+        // Activate first prompt and user
+        users[0].state = 'active';
+        session.prompts[0].state = 'active';
+    }
+    else if(session.state == 'closing') {
+        // Advance all prompts, clear active user
+        users.forEach(user => user.state = 'spoken');
+        session.prompts.forEach(prompt => prompt.state = 'finished');
+        
+        // Reset the timer
+        resetTimer(session);
+    }
+}
+function getSessionState(session) {
+    let users               = sortUsers(session.id),
+        currUserIndex       = users.findIndex(usr => usr.state == 'active'),
+        currUser            = users[currUserIndex],
+        nextUser            = users[currUserIndex + 1],
+        maxSeconds          = session.participant_seconds,
+        currSeconds         = maxSeconds,
+        activePromptIndex   = session.prompts
+            .findIndex(prompt => prompt.state == 'active' 
+            || prompt.state == 'roundtable'),
+        activePrompt        = session.prompts[activePromptIndex],
+        nextPrompt          = session.prompts[activePromptIndex + 1];
+    
+    let stateObj = {
+        users,
+        currUserIndex,
+        currUser,
+        nextUser,
+        maxSeconds,
+        currSeconds,
+        activePromptIndex,
+        activePrompt,
+        nextPrompt
+    };
+
+    if(activePrompt && activePrompt.state == 'roundtable') {
+        stateObj.maxSeconds = (session.roundtable_minutes * 60);
+        stateObj.currSeconds = stateObj.maxSeconds;
+        
+        if(stateObj.maxSeconds == 0) {
+            stateObj.maxSeconds = 1;
+            stateObj.currSeconds = 0;
+        }
+    } else if(session.state == 'closing') {
+        stateObj.maxSeconds = 1;
+        stateObj.currSeconds = 0;
+    }
+
+
+    return stateObj;
+}
+function resetTimer(session) {
+    // Reset the timer
+    clearInterval(session.timer);
+    session.timer = null;
+}
 function sortUsers(session_id) {
     let users = getSessionUsers(session_id),
         session = getSession(session_id);
@@ -36,7 +160,16 @@ function sortUsers(session_id) {
 
     return users;
 }
+function updateUi(io, session) {
+    let { currSeconds, maxSeconds } = getSessionState(session);
 
+    // Update the UI
+    setTimeout(() => {
+        updateUserList(io, session.id);
+        io.to(session.id).emit('advanceTimer', { currSeconds, maxSeconds });
+        io.to(session.id).emit('updateSession', session);
+    }, UI_TIMEOUT);
+}
 function updateUserList(io, session_id) {
     let users = sortUsers(session_id);
 
@@ -50,9 +183,152 @@ function updateUserList(io, session_id) {
 /**
  * Websocket Event Handlers
  */
-function evtVerify(io, socket, params) {
-    let { username, session_id, is_host } = params;
+function eventAdvancePrompt(io, socket) {
+    let user = getUserBySocket(socket.id),
+        session = getSession(user.session_id);
     
+    advancePrompt(session);
+    updateUi(io, session);
+}
+function eventAdvanceSession(io, socket) {
+    let user = getUserBySocket(socket.id),
+        session = getSession(user.session_id);
+    
+    advanceSession(session);
+    updateUi(io, session);
+}
+function eventAdvanceUser(io, socket) {
+    let user = getUserBySocket(socket.id),
+        session = getSession(user.session_id);
+
+    advanceUser(session);
+    updateUi(io, session);
+}
+function eventDisconnect(io, socket) {
+    let user = getUserBySocket(socket.id);
+
+    if(user) {
+        let session = getSession(user.session_id);
+        
+        // Destroy the user
+        user = userLeave(user.id);
+        console.log(`${user.username} disconnected...`); 
+        
+        // Emit updated user list
+        if(session){
+            let userIdIndex = session.user_id_order
+                .findIndex(user_id => user_id == user.id);
+
+            session.user_id_order.splice(userIdIndex, 1);
+            updateUserList(io, session.id);
+        }
+
+        // Destroy the session
+        if(session && session.host_id == user.id) {
+            destroySession(session.id);
+            console.log(`session ${session.id} destroyed...`);
+
+            io.to(session.id).emit('sessionEnd', 'The host has closed the session.');
+        }
+    }
+}
+function eventReorderUsers(io, socket, new_user_id_order) {
+    let user = getUserBySocket(socket.id),
+        session = getSession(user.session_id);
+
+    if(new_user_id_order.length > 0 && session) {
+        let invalidUserDetected = false;
+
+        for(i = 0; i < new_user_id_order.length; i++) {
+            let user_id = new_user_id_order[i];
+
+            if(!getUserById(user_id)) {
+                invalidUserDetected = true;
+                break;
+            }
+        }
+
+        if(invalidUserDetected)
+            return;
+
+        // console.log('reorderUsers...', session, new_user_id_order);
+        setUserOrder(session.id, new_user_id_order);
+        updateUserList(io, session.id);
+    }
+}
+function eventStartSession(io, socket, params) {
+    let { prompts, options } = params,
+        user = getUserBySocket(socket.id),
+        session = getSession(user.session_id);
+
+        // Translate session props
+        session.state = 'opening';
+        session.prompts = prompts.map(prompt => {
+            return { 
+                text: prompt, 
+                // users_spoken: [],
+                state: '' // '', 'active', 'finished'
+            };
+        });
+
+        session.host_participate = options.host_participate;
+        session.roundtable_minutes = parseInt(options.roundtable_minutes);
+        session.participant_seconds = (parseInt(options.participant_minutes) * 60) 
+            + parseInt(options.participant_seconds);
+
+        if(!session.host_participate) {
+            let hostIndex = session.user_id_order
+                .findIndex(user_id => user_id == session.host_id);
+
+            session.user_id_order.splice(hostIndex, 1);
+            updateUserList(io, session.id);
+        }
+
+        io.to(session.id).emit('sessionStarted', session);
+        // console.log(`session ${session.id} started...`, session, options);
+}
+function eventStartTimer(io, socket) {
+    let user = getUserBySocket(socket.id),
+        session = getSession(user.session_id);
+
+    if(session && !session.timer) { 
+        let {
+            activePrompt,
+            maxSeconds,
+            currSeconds
+        } = getSessionState(session);
+        
+        let timer = null;
+
+        // console.log('emit advanceTimer...', currSeconds, maxSeconds);
+        io.to(session.id).emit('advanceTimer', { currSeconds, maxSeconds });
+
+        timer = setInterval(() => {
+            // Cycle timer
+            if(currSeconds > 0) currSeconds--;
+            io.to(session.id).emit('advanceTimer', { currSeconds, maxSeconds });
+
+            // Finish timer
+            if(currSeconds == 0) {
+                resetTimer(session);
+                
+                if(activePrompt.state == 'roundtable') {
+                    advancePrompt(session);
+                } else {
+                    advanceUser(session);
+                }
+                
+                updateUi(io, session);
+            }
+        }, 1000);
+
+        // Store the interval ID to be cleared later
+        session.timer = parseInt(timer);
+    }
+}
+function eventVerify(io, socket, params) {
+    let { username, session_id, is_host } = params;
+
     // Validate user
     if(!validateUser(username, session_id)) {
         socket.emit('verification', {
@@ -102,8 +378,14 @@ function evtVerify(io, socket, params) {
     updateUserList(io, user.session_id);
 }
 
+
 module.exports = {
-    sortUsers,
-    updateUserList,
-    evtVerify
+    eventAdvancePrompt,
+    eventAdvanceSession,
+    eventAdvanceUser,
+    eventDisconnect,
+    eventReorderUsers,
+    eventStartSession,
+    eventStartTimer,
+    eventVerify
 };
