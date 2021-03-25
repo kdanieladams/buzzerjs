@@ -1,6 +1,6 @@
 <template>
     <header>
-        <h1>Buzzer.js</h1>
+        <h1><img src="../assets/img/buzzer-icon.png" /> Buzzer.js</h1>
         <h3>Simple buzzer app for debate panels</h3>
     </header>
 </template>
@@ -14,5 +14,10 @@ h1 {
 
 h3 {
     margin-top: 10px;
+}
+
+img {
+    width: 32px;
+    height: 32px;
 }
 </style>

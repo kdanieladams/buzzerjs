@@ -42,7 +42,7 @@
         <template v-if="session.state == 'started'">
             <Button v-if="!isRoundtable" text="Next User" icon="fa-angle-double-right"
                 @btn-click="$emit('advance-user')" /> 
-            <Button text="Next Prompt" icon="fa-angle-double-right" 
+            <Button :text="(isRoundtable ? 'Next' : 'Advance') + ' Prompt'" icon="fa-angle-double-right" 
                 @btn-click="$emit('advance-prompt')" />
         </template>
         <Button :text="btnPrimaryProps.text" :color="btnPrimaryProps.color" 

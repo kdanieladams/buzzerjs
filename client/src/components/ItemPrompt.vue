@@ -21,15 +21,15 @@ export default {
     margin: 10px 0;
     padding: 5px;
 }
-.prompt.active {
+.prompt.active, .prompt.roundtable {
     background-color: #777;
     font-weight: bold;
 }
-.prompt.roundtable {
+/* .prompt.roundtable {
     background-color: #121212;
     border: solid 1px #777;
     font-weight: bold;
-}
+} */
 .prompt.finished {
     color: #555;
 }

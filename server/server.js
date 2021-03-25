@@ -24,8 +24,9 @@ const {
 
 // Config
 dotenv.config();
-const PORT = process.env.PORT || 3000;
-const DEV_CLIENT_ADDR = process.env.DEV_CLIENT_ADDR || 'localhost:8080'
+const PORT              = process.env.PORT || 3000;
+const DEV_CLIENT_ADDR   = process.env.DEV_CLIENT_ADDR || 'localhost:8080';
+const UI_TIMEOUT        = process.env.UI_TIMEOUT || 1500;
 
 // Bootstrapping
 const app = express();
@@ -184,29 +185,29 @@ io.on('connection', socket => {
             session = user ? getSession(user.session_id) : false;
     
         if(session && !session.timer) {
-            let prompt = session.prompts
-                .find(prompt => prompt.state == 'active' || prompt.state == 'roundtable');
+            let promptIndex = session.prompts
+                    .findIndex(prompt => prompt.state == 'active' || prompt.state == 'roundtable'),
+                prompt = session.prompts[promptIndex],
+                nextPrompt = session.prompts[promptIndex + 1];
             let maxSeconds = prompt.state == 'active' ? session.participant_seconds 
-                : (session.roundtable_minutes * 60),
+                    : (session.roundtable_minutes * 60),
                 currSeconds = maxSeconds,
                 timer = null;
 
-            // console.log('emit advanceTimer...', currSeconds);
+            // console.log('emit advanceTimer...', currSeconds, maxSeconds);
             io.to(session.id).emit('advanceTimer', { currSeconds, maxSeconds });
             
             timer = setInterval(() => {
                 // Cycle timer
-                currSeconds--;
+                if(currSeconds > 0) currSeconds--;
+                // console.log('cycle timer...', currSeconds, maxSeconds);
                 io.to(session.id).emit('advanceTimer', { currSeconds, maxSeconds });
 
                 // Finish timer
                 if(currSeconds == 0) {
-                    let users = sortUsers(session.id),
+                    let users       = sortUsers(session.id),
                         userIdIndex = users.findIndex(usr => usr.id == user.id),
-                        nextUser = users[userIdIndex + 1],
-                        promptIndex = session.prompts.findIndex(prompt => prompt.state == 'active' 
-                            || prompt.state == 'roundtable'),
-                        prompt = session.prompts[promptIndex];
+                        nextUser    = users[userIdIndex + 1];
 
                     // Reset the timer
                     clearInterval(session.timer);
@@ -222,9 +223,6 @@ io.on('connection', socket => {
 
                     // Update prompt state
                     if(prompt.state == 'roundtable') {
-                        let promptIndex = session.prompts.findIndex(p => p.text == prompt.text),
-                            nextPrompt = session.prompts[promptIndex + 1];
-                        
                         prompt.state = 'finished';
                         maxSeconds = 0;
 
@@ -243,6 +241,15 @@ io.on('connection', socket => {
                         prompt.state = 'roundtable';
                         users.forEach(user => user.state = '');
                         maxSeconds = (session.roundtable_minutes * 60);
+
+                        // Advance to next prompt if no roundtable time
+                        if(maxSeconds == 0) {
+                            prompt.state = 'finished';
+                            if(nextPrompt) nextPrompt.state = 'active';
+                            users[0].state = 'active';
+                            maxSeconds = session.participant_seconds;
+                            // currSeconds = maxSeconds;
+                        }
                     } else if(!prompt) {
                         // ...
                     } 
@@ -252,7 +259,7 @@ io.on('connection', socket => {
                         updateUserList(io, session.id);
                         io.to(session.id).emit('advanceTimer', { currSeconds: maxSeconds, maxSeconds });
                         io.to(session.id).emit('updateSession', session);
-                    }, 2500);
+                    }, UI_TIMEOUT);
                 }
             }, 1000);
             session.timer = parseInt(timer);
@@ -260,71 +267,85 @@ io.on('connection', socket => {
     });
 
     socket.on('advanceUser', () => {
-        let user = getUserBySocket(socket.id),
-            session = getSession(user.session_id),
-            users = sortUsers(session.id),
-            currUserIndex = users.findIndex(usr => usr.state == 'active'),
-            currUser = users[currUserIndex],
-            nextUser = users[currUserIndex + 1],
-            promptIndex = session.prompts.findIndex(prompt => prompt.state == 'active' 
-                || prompt.state == 'roundtable'),
-            prompt = session.prompts[promptIndex],
-            maxSeconds = session.participant_seconds;
-
+        let user            = getUserBySocket(socket.id),
+            session         = getSession(user.session_id),
+            users           = sortUsers(session.id),
+            currUserIndex   = users.findIndex(usr => usr.state == 'active'),
+            currUser        = users[currUserIndex],
+            nextUser        = users[currUserIndex + 1],
+            maxSeconds      = session.participant_seconds,
+            currSeconds     = maxSeconds,
+            activePromptIndex = session.prompts.findIndex(prompt => prompt.state == 'active'),
+            activePrompt    = session.prompts[activePromptIndex];
+            
         // Reset the timer
         clearInterval(session.timer);
         session.timer = null;
 
-        // Update current user
-        currUser.state = 'spoken';
+        if(activePrompt && currUser) {
+            // Update current user
+            currUser.state = 'spoken';
 
-        // Activate the next user
-        if(nextUser) {
-            nextUser.state = 'active';
+            // Activate the next user
+            if(nextUser) {
+                nextUser.state = 'active';
+            }
+
+            // console.log('advanceUser...', prompt, user.id, nextUser, users);
+
+            if(!nextUser) {
+                // Advance to roundtable if at end of user list
+                activePrompt.state = 'roundtable';
+                users.forEach(user => user.state = '');
+                maxSeconds = (session.roundtable_minutes * 60);
+                currSeconds = maxSeconds;
+
+                // Advance to next prompt if no roundtable time
+                if(maxSeconds == 0) {
+                    let nextPrompt = session.prompts[activePromptIndex + 1];
+
+                    activePrompt.state = 'finished';
+                    nextPrompt.state = 'active';
+                    users[0].state = 'active';
+                    maxSeconds = session.participant_seconds;
+                    currSeconds = maxSeconds;
+                }
+            }
+
+            // Update the UI
+            setTimeout(() => {
+                updateUserList(io, session.id);
+                io.to(session.id).emit('advanceTimer', { currSeconds: currSeconds, maxSeconds });
+                io.to(session.id).emit('updateSession', session);
+            }, UI_TIMEOUT);
         }
-
-        // console.log('advanceUser...', prompt, user.id, nextUser, users);
-
-        // Advance to roundtable if at end of user list
-        if(prompt.state == 'active' && !nextUser) {
-            prompt.state = 'roundtable';
-            users.forEach(user => user.state = '');
-            maxSeconds = (session.roundtable_minutes * 60);
-        }
-
-         // Update the UI
-         setTimeout(() => {
-            updateUserList(io, session.id);
-            io.to(session.id).emit('advanceTimer', { currSeconds: maxSeconds, maxSeconds });
-            io.to(session.id).emit('updateSession', session);
-        }, 2500);
     });
 
     socket.on('advancePrompt', () => {
-        let user = getUserBySocket(socket.id),
-            session = getSession(user.session_id),
-            users = sortUsers(session.id),
-            activePromptIndex = session.prompts
-                .findIndex(prompt => prompt.state == 'active' || prompt.state == 'roundtable'),
-            activePrompt = session.prompts[activePromptIndex],
-            nextPrompt = session.prompts[activePromptIndex + 1],
-            maxSeconds = session.roundtable_minutes * 60,
-            currSeconds = 0;
+        let user                = getUserBySocket(socket.id),
+            session             = getSession(user.session_id),
+            users               = sortUsers(session.id),
+            maxSeconds          = session.roundtable_minutes * 60,
+            currSeconds         = 0,
+            activePromptIndex   = session.prompts
+                                    .findIndex(prompt => prompt.state == 'active' || prompt.state == 'roundtable'),
+            activePrompt        = session.prompts[activePromptIndex],
+            nextPrompt          = session.prompts[activePromptIndex + 1];
 
         if(activePrompt) {
-            activePrompt.state = (activePrompt.state == 'active') ? 'roundtable' : 'finished';
+            activePrompt.state = (activePrompt.state == 'active' && maxSeconds != 0) ? 'roundtable' : 'finished';
         
             clearInterval(session.timer);
             session.timer = null;
             users.forEach(user => user.state = '');
             updateUserList(io, session.id);
 
-            if(nextPrompt && activePrompt.state == 'finished') {
+            if(nextPrompt && (activePrompt.state == 'finished' || maxSeconds == 0)) {
                 // Activate nextPrompt
                 nextPrompt.state = 'active';
                 users[0].state = 'active';
                 maxSeconds = session.participant_seconds;
-                currSeconds = session.participant_seconds;
+                currSeconds = maxSeconds;
             } else if(activePrompt.state == 'finished'){
                 // Close the session
                 session.state = 'closing';
@@ -332,21 +353,21 @@ io.on('connection', socket => {
                 session.prompts.forEach(prompt => prompt.state = 'finished');
             } else {
                 // Advance prompt to roundtable
-                currSeconds = (session.roundtable_minutes * 60);
+                currSeconds = maxSeconds;
             }
 
             setTimeout(() => {
                 updateUserList(io, session.id);
                 io.to(session.id).emit('advanceTimer', { currSeconds, maxSeconds });
                 io.to(session.id).emit('updateSession', session);    
-            }, 2500);
+            }, UI_TIMEOUT);
         }
     });
 
     socket.on('advanceSession', () => {
-        let user = getUserBySocket(socket.id),
-            session = getSession(user.session_id),
-            users = sortUsers(session.id),
+        let user        = getUserBySocket(socket.id),
+            session     = getSession(user.session_id),
+            users       = sortUsers(session.id),
             currSeconds = 0;
         
         // Advance session state
