@@ -70,11 +70,16 @@ export default {
             this.socket.emit('reorderUsers', new_user_id_order);
         },
         startSession({ prompts, options }) {
-            if(prompts.length > 0) {
-                this.socket.emit('startSession', { prompts, options });
-            }
-            else {
+            // Validate session setup form
+            if(prompts.length == 0) {
                 alert('You must include at least one prompt.');
+            } else if(options.participant_seconds <= 0) {
+                alert('Participant response time must be greater than 0s.');
+            } else if(this.users.length <= 1) {
+                alert('There must be more than 1 user present to start the session.');
+            } else {
+                // Start the session
+                this.socket.emit('startSession', { prompts, options });
             }
         },
         startTimer() {
@@ -94,7 +99,7 @@ export default {
         if(process.env.NODE_ENV == 'development')
             this.socket = io(`http://${ process.env.VUE_APP_SERVER_ADDR }`);
         else
-            this.socket = io();
+            this.socket = io({ secure: true });
     },
     mounted() {
         let username = sessionStorage.getItem('username');

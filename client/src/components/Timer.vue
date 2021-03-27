@@ -63,16 +63,6 @@ export default {
         this.$watch('curr_seconds', (newVal, oldVal) => {
             this.cycleTimer(newVal);
         });
-        // this.$watch(['active_user', 'session'], (newVals, oldVals) => {
-        //     let roundtablePrompt = newVals[1].prompts.find(p => p.state == 'roundtable');
-
-        //     console.log('Timer: watch(session)...', newVals);
-
-        //     if(roundtablePrompt)
-        //         this.timerText = 'Roundtable Discussion';
-        //     else if(newVals[0])
-        //         this.timerText = newVals[0].username;
-        // });
     }
 }
 </script>

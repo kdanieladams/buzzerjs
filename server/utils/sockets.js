@@ -58,8 +58,8 @@ function advancePrompt(session) {
         activePrompt,
         nextPrompt,
         users
-    } = getSessionState(session),
-    maxSeconds = (session.roundtable_minutes * 60);
+    } = getSessionState(session);
+    let maxSeconds = (session.roundtable_minutes * 60);
 
     if(activePrompt) {
         activePrompt.state = (activePrompt.state == 'active' && maxSeconds != 0) 
@@ -72,7 +72,7 @@ function advancePrompt(session) {
             // Activate nextPrompt
             nextPrompt.state = 'active';
             users[0].state = 'active';
-        } else if(activePrompt.state == 'finished'){
+        } else if(activePrompt.state == 'finished') {
             // Advance the session
             advanceSession(session);
         } 
@@ -265,8 +265,7 @@ function eventStartSession(io, socket, params) {
         session.state = 'opening';
         session.prompts = prompts.map(prompt => {
             return { 
-                text: prompt, 
-                // users_spoken: [],
+                text: prompt,
                 state: '' // '', 'active', 'finished'
             };
         });

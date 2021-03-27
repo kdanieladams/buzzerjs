@@ -13,7 +13,7 @@ This requires the client to be running in a different console window.
 npm run dev
 ```
 
-### Compiles and minifies for production
+### Compiles and serves for production
 This serves the built client from a static directory (`/www`), so no need to run the client seperately.
 ```
 npm start
