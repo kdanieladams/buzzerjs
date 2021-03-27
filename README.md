@@ -2,6 +2,10 @@
 
 Simple JS buzzer app for debates.  See each project's readme for details about running in a development environment.
 
+## Demo
+
+Checkout [buzzerjs.dan-adams.com](https://buzzerjs.dan-adams.com) to see a live working instance of the app.
+
 ## So...what is this thing?
 
 This is intended as a companion app to people participating in online debates. It keeps track of the topic at-hand, the speakers participating in the debate, how much time is allotted to the current speaker, and how long they've been talking. The app also handles an optional roundtable phase for each topic, during which anyone should be able to chime in. It's not really intended to be a hardline limit on how long people can talk, but rather a guideline to help ensure everyone has a more equal say in the debate overall.
