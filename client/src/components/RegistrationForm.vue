@@ -1,5 +1,7 @@
 <template>
     <form @submit="onSubmit">
+        <h3 v-if="isHosting" class="center">Let's start a new session!</h3>
+        <h3 v-else class="center">Let's join a session!</h3>
         <div class="form-control">
             <label for="username">Username:</label>
             <input v-model="username" name="username" />
@@ -10,17 +12,17 @@
                 Remember Username?
             </label>
         </div>
-        <div v-if="this.isHosting" class="center">
+        <div v-if="isHosting" class="center">
             <p>Your Session ID for this debate will be as follows:</p>
             <p id="session-code">{{ sessionCode }}</p>
             <p class="small">Your participants require your Session ID to join.</p>
         </div>
-        <div v-if="!this.isHosting" class="form-control">
+        <div v-if="!isHosting" class="form-control">
             <label for="session-id">Session ID:</label>
             <input v-model="sessionCode" id="session-id" autocomplete="off" />
         </div>
         <div class="right">
-            <Button :text="this.isHosting ? 'Next Step &gt;&gt;' : 'Join Session'" />
+            <Button :text="isHosting ? 'Next Step &gt;&gt;' : 'Join Session'" />
         </div>
     </form>
 </template>
@@ -45,7 +47,7 @@ export default {
     },
     methods: {
         generateSessionCode() {
-            let characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890",
+            let characters = "ABCDEFGHIJKLMNPQRSTUVWXYZ1234567890",
                 code = '',
                 codeLength = 5;
             

@@ -1,6 +1,6 @@
 <template>
     <h2 class="center">Session {{ session.id }}</h2>
-    <h5 class="center" id="session-state">{{ session.state }} stage</h5>
+    <h5 class="center" id="session-state">{{ session.state }}</h5>
     <Timer ref="timer" :active_user="active_user" :session="session" 
         :curr_seconds="curr_seconds" :max_seconds="max_seconds" />
     <div v-if="showTimerBtn" class="center">

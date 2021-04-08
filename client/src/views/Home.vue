@@ -1,8 +1,9 @@
 <template>
     <div class="center" v-if="!showRegistrationForm">
+        <h3>Welcome to Buzzer.js!</h3>
         <p>What would you like to do?</p>
-        <Button text="Host a Panel" color="#900" @btn-click="showForm(true)" />
-        <Button text="Participate in a Panel" @btn-click="showForm()" />    
+        <Button text="Start a Session" color="#900" @btn-click="showForm(true)" />
+        <Button text="Join an Existing Session" @btn-click="showForm()" />    
     </div>
     <div v-if="showRegistrationForm">
         <a href="#" @click="hideForm()">&lt;&lt; Back</a>

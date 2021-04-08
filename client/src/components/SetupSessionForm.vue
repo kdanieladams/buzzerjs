@@ -30,23 +30,18 @@
                 <input v-model="options.host_participate" type="checkbox" id="host-participate" />
             </label>
         </div>
-        <div class="form-control time-field">
+        <div class="form-control">
             <label for="time-min">
                 Participant response time? <i class="small">(mm:ss)</i>
             </label>
-            <input v-model="options.participant_minutes" type="number" id="time-min" 
-                size="2" max="59" min="0" />
-            <b>:</b>
-            <span v-if="options.participant_seconds < 10">0</span>
-            <input v-model="options.participant_seconds" type="number" id="time-sec" 
-                size="2" max="59" min="0" />
+            <input v-model="masked_participant_seconds" v-maska="'##:##'" placeholder="00:00" />
         </div>
-        <div class="form-control time-field">
+        <div class="form-control">
             <label for="time-roundtable">
                 Roundtable minutes? <span class="small">(enter '0' for no roundtable)</span>
             </label>
-            <input v-model="options.roundtable_minutes" type="number" id="time-roundtable" 
-                size="2" max="99" min="0" />
+            <input v-model="masked_roundtable_minutes" v-maska="'##:00'"
+                id="time-roundtable" placeholder="01:00" size="2" max="99" min="0" />
         </div>
     </form>
     <p>Users (<i class="small">drag and drop to sort</i>):</p>
@@ -59,7 +54,7 @@
     </ul>
     <div class="center">
         <Button text="Start Session" color="green" icon="fa-play" 
-            @btn-click="$emit('begin-session', { prompts: prompts, options: options })" />
+            @btn-click="onFormSubmit" />
     </div>
 </template>
 
@@ -84,13 +79,14 @@ export default {
             newPrompt: '',
             options: {
                 host_participate: true,
-                participant_minutes: 1,
-                participant_seconds: 0,
-                roundtable_minutes: 30
+                participant_seconds: null,
+                roundtable_minutes: null
             },
             prompts: [],
             username: sessionStorage.getItem('username'),
-            session_id: ''
+            session_id: '',
+            masked_participant_seconds: "",
+            masked_roundtable_minutes: ""
         };
     },
     methods: {
@@ -105,6 +101,17 @@ export default {
         deletePrompt(index) {
             if(confirm("Are you sure you want to delete the selected prompt?"))
                 this.prompts.splice(index, 1);
+        },
+        onFormSubmit(e) {
+            let masked_part_seconds = this.masked_participant_seconds.split(":"),
+                masked_round_minutes = this.masked_roundtable_minutes.split(":");
+
+            this.options.participant_seconds = (parseInt(masked_part_seconds[0]) * 60)
+                + parseInt(masked_part_seconds[1]);
+            this.options.roundtable_minutes = parseInt(masked_round_minutes[0]);
+            
+            // console.log(this.options);
+            this.$emit('begin-session', { prompts: this.prompts, options: this.options })
         }
     },
     created() {

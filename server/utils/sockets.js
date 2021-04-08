@@ -163,12 +163,9 @@ function sortUsers(session_id) {
 function updateUi(io, session) {
     let { currSeconds, maxSeconds } = getSessionState(session);
 
-    // Update the UI
-    setTimeout(() => {
-        updateUserList(io, session.id);
-        io.to(session.id).emit('advanceTimer', { currSeconds, maxSeconds });
-        io.to(session.id).emit('updateSession', session);
-    }, UI_TIMEOUT);
+    updateUserList(io, session.id);
+    io.to(session.id).emit('advanceTimer', { currSeconds, maxSeconds });
+    io.to(session.id).emit('updateSession', session);
 }
 function updateUserList(io, session_id) {
     let users = sortUsers(session_id);
@@ -202,7 +199,7 @@ function eventAdvanceUser(io, socket) {
         session = getSession(user.session_id);
 
     advanceUser(session);
-    updateUi(io, session);
+    setTimeout(() => updateUi(io, session), UI_TIMEOUT);
 }
 function eventDisconnect(io, socket) {
     let user = getUserBySocket(socket.id);
@@ -272,8 +269,7 @@ function eventStartSession(io, socket, params) {
 
         session.host_participate = options.host_participate;
         session.roundtable_minutes = parseInt(options.roundtable_minutes);
-        session.participant_seconds = (parseInt(options.participant_minutes) * 60) 
-            + parseInt(options.participant_seconds);
+        session.participant_seconds = parseInt(options.participant_seconds);
 
         if(!session.host_participate) {
             let hostIndex = session.user_id_order
