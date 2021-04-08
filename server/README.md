@@ -24,7 +24,7 @@ Ideally, you'd use a process monitor of some sort to start and monitor the Node 
 
 Likewise, for security reasons, I reccommend using a production-ready webserver (such as Apache or Nginx) as a proxy-host for the script.  I've always been a LAMP fan, so here is an example configuration for Apache:
 
-```
+```ApacheConf
 <VirtualHost *:80>
         DocumentRoot /var/www/buzzerjs/www
         ServerName www.buzzerjs.your-domain.com
