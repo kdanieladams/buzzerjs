@@ -34,14 +34,16 @@
             <label for="time-min">
                 Participant response time? <i class="small">(mm:ss)</i>
             </label>
-            <input v-model="masked_participant_seconds" v-maska="'##:##'" placeholder="00:00" />
+            <input v-model="masked_participant_seconds" v-maska="'##:##'" placeholder="00:00"
+                inputmode="numeric" />
         </div>
         <div class="form-control">
             <label for="time-roundtable">
                 Roundtable minutes? <span class="small">(enter '0' for no roundtable)</span>
             </label>
             <input v-model="masked_roundtable_minutes" v-maska="'##:00'"
-                id="time-roundtable" placeholder="01:00" size="2" max="99" min="0" />
+                id="time-roundtable" placeholder="01:00" size="2" max="99" min="0" 
+                inputmode="numeric" />
         </div>
     </form>
     <p>Users (<i class="small">drag and drop to sort</i>):</p>
@@ -99,8 +101,8 @@ export default {
             }
         },
         deletePrompt(index) {
-            if(confirm("Are you sure you want to delete the selected prompt?"))
-                this.prompts.splice(index, 1);
+            // if(confirm("Are you sure you want to delete the selected prompt?"))
+            this.prompts.splice(index, 1);
         },
         onFormSubmit(e) {
             let masked_part_seconds = this.masked_participant_seconds.split(":"),
