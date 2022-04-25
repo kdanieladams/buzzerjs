@@ -92,7 +92,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 #session-code {
     background-color: #900;
     padding: 15px;

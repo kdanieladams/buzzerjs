@@ -1,20 +1,31 @@
 <!DOCTYPE html>
 <html lang="">
   <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <meta property="og:title" content="Buzzer.js">
-    <meta property="og:description" content="An app to help make debates go more smoothly.">
-    <meta property="og:url" content="https://buzzerjs.dan-adams.com">
-    <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <meta property="og:title" content="Buzzer.js" />
+    <meta property="og:description" content="An app to help make debates go more smoothly." />
+    <meta property="og:url" content="https://buzzerjs.dan-adams.com" />
+    <link rel="icon" href="<%= BASE_URL %>favicon.ico" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
     <title><%= htmlWebpackPlugin.options.title %></title>
+    <style>
+      #yt_video {
+        display: block;
+        margin: 0px auto;
+        width: 100%;
+        max-width: 414px;
+        height: 233px;
+      }
+    </style>
   </head>
   <body>
     <noscript>
       <strong>We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
     </noscript>
     <div id="app"></div>
+    <iframe id="yt_video" width="100%" src="https://www.youtube.com/embed/JYpsMY8jnHM" title="YouTube video player" frameborder="0" 
+      allow="accelerometer; clipboard-write; encrypted-media" allowfullscreen></iframe>
   </body>
 </html>

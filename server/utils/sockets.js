@@ -107,7 +107,7 @@ function getSessionState(session) {
         currSeconds         = maxSeconds,
         activePromptIndex   = session.prompts
             .findIndex(prompt => prompt.state == 'active' 
-            || prompt.state == 'roundtable'),
+                || prompt.state == 'roundtable'),
         activePrompt        = session.prompts[activePromptIndex],
         nextPrompt          = session.prompts[activePromptIndex + 1];
     
@@ -284,7 +284,8 @@ function eventStartSession(io, socket, params) {
 }
 function eventStartTimer(io, socket) {
     let user = getUserBySocket(socket.id),
-        session = getSession(user.session_id);
+        session = getSession(user.session_id),
+        timer = null;
 
     if(session && !session.timer) { 
         let {
@@ -292,8 +293,6 @@ function eventStartTimer(io, socket) {
             maxSeconds,
             currSeconds
         } = getSessionState(session);
-        
-        let timer = null;
 
         // console.log('emit advanceTimer...', currSeconds, maxSeconds);
         io.to(session.id).emit('advanceTimer', { currSeconds, maxSeconds });

@@ -75,22 +75,20 @@ export default {
         Button,
         ItemUser
     },
-    data() {
-        return {
-            clientUser: sessionStorage.getItem('username'),
-            newPrompt: '',
-            options: {
-                host_participate: true,
-                participant_seconds: null,
-                roundtable_minutes: null
-            },
-            prompts: [],
-            username: sessionStorage.getItem('username'),
-            session_id: '',
-            masked_participant_seconds: "",
-            masked_roundtable_minutes: ""
-        };
-    },
+    data: () => ({
+        clientUser: sessionStorage.getItem('username'),
+        newPrompt: '',
+        options: {
+            host_participate: true,
+            participant_seconds: null,
+            roundtable_minutes: null
+        },
+        prompts: [],
+        username: sessionStorage.getItem('username'),
+        session_id: '',
+        masked_participant_seconds: "",
+        masked_roundtable_minutes: ""
+    }),
     methods: {
         onPromptSubmit(e) {
             e.preventDefault();
