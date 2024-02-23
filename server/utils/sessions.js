@@ -43,7 +43,6 @@ function setUserOrder(session_id, new_user_id_order) {
 
 function validateSession(session_id) {
     let valid = sessions.findIndex(session => session.id == session_id) !== -1;
-    // console.log('validate session', valid, sessions);
     return valid;
 }
 

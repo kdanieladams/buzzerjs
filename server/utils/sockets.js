@@ -171,7 +171,6 @@ function updateUi(io, session) {
 function updateUserList(io, session_id) {
     let users = sortUsers(session_id);
 
-    // console.log('updateUserList...', users, session.user_id_order);
     io.to(session_id).emit('userList', {
         session_id: session_id,
         users: users
@@ -210,7 +209,7 @@ function eventDisconnect(io, socket) {
         
         // Destroy the user
         user = userLeave(user.id);
-        console.log(`${user.username} disconnected...`); 
+        console.log(new Date() + `: ${user.username} disconnected...`); 
         
         // Emit updated user list
         if(session){
@@ -224,7 +223,7 @@ function eventDisconnect(io, socket) {
         // Destroy the session
         if(session && session.host_id == user.id) {
             destroySession(session.id);
-            console.log(`session ${session.id} destroyed...`);
+            console.log(new Date() + `: session ${session.id} destroyed...`);
 
             io.to(session.id).emit('sessionEnd', 'The host has closed the session.');
         }
@@ -249,7 +248,6 @@ function eventReorderUsers(io, socket, new_user_id_order) {
         if(invalidUserDetected)
             return;
 
-        // console.log('reorderUsers...', session, new_user_id_order);
         setUserOrder(session.id, new_user_id_order);
         updateUserList(io, session.id);
     }
@@ -284,7 +282,6 @@ function eventStartSession(io, socket, params) {
     }
 
     io.to(session.id).emit('sessionStarted', session);
-    // console.log(`session ${session.id} started...`, session, options);
 }
 function eventStartTimer(io, socket) {
     let user = getUserBySocket(socket.id),
@@ -298,7 +295,6 @@ function eventStartTimer(io, socket) {
             currSeconds
         } = getSessionState(session);
 
-        // console.log('emit advanceTimer...', currSeconds, maxSeconds);
         io.to(session.id).emit('advanceTimer', { currSeconds, maxSeconds });
 
         timer = setInterval(() => {

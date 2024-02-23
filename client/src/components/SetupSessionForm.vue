@@ -153,7 +153,6 @@ export default {
 
             this.options.roundtable_minutes = parseInt(masked_round_minutes);
             
-            // console.log(this.options);
             this.$emit('begin-session', { prompts: this.prompts, options: this.options });
         },
         onPromptSubmit(e) {

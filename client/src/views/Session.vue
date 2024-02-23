@@ -148,7 +148,6 @@ export default {
 
         // Handle session start
         this.socket.on('sessionStarted', session => {
-            // console.log('sessionStarted', session);
             this.active_session = session;
             this.session_started = true;
         });

@@ -23,7 +23,7 @@ function userJoin(username, ip, session_id, socket_id) {
     };
 
     users.push(user);
-    console.log(`user joined ${session_id}`, user.username, user.id, user.ip);
+    console.log(new Date() + `: user joined ${session_id}`, user.username, user.id, user.ip);
     return user;
 }
 
