@@ -1,5 +1,6 @@
 <template>
-    <h2 class="center">Session {{ session.id }}</h2>
+    <SessionId :session_id="session.id" :show_session_code="show_session_code"
+        @hide-session-click="clickHideSessionCode" />
     <h5 class="center" id="session-state">{{ session.state }}</h5>
     <Timer ref="timer" :active_user="active_user" :session="session" 
         :curr_seconds="curr_seconds" :max_seconds="max_seconds" />
@@ -55,6 +56,7 @@
 import Button from './Button';
 import ItemPrompt from './ItemPrompt';
 import ItemUser from './ItemUser';
+import SessionId from './SessionId';
 import Timer from './Timer';
 
 export default {
@@ -70,6 +72,7 @@ export default {
         Button,
         ItemPrompt,
         ItemUser,
+        SessionId,
         Timer
     },
     data() {
@@ -77,6 +80,7 @@ export default {
             clientUser: sessionStorage.getItem('username'),
             translatedSeconds: '0:00',
             timerStarted: false,
+            show_session_code: true,
             btnPrimaryProps: {
                 text: 'Begin Debate',
                 color: 'green',
@@ -107,6 +111,9 @@ export default {
 
             this.$emit('advance-session');
         },
+        clickHideSessionCode(e) {
+            this.show_session_code = !this.show_session_code;
+        },
         startTimer() {
             this.$emit('start-timer');
             this.timerStarted = true;
@@ -114,9 +121,11 @@ export default {
     },
     mounted() {
         this.translatedSeconds = this.$refs.timer.translateSeconds(this.session.participant_seconds);
+        
         this.$watch('active_user', () => {
                 this.timerStarted = false;
-        });    
+        });
+
         this.$watch('session', (newSession, oldSession) => {
             if(newSession.state == 'opening') {
                 this.btnPrimaryProps = {

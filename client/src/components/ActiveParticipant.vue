@@ -1,5 +1,6 @@
 <template>
-    <h2 class="center">Session {{ session.id }}</h2>
+    <SessionId :session_id="session.id" :show_session_code="show_session_code"
+        @hide-session-click="clickHideSessionCode" />
     <h5 class="center">{{ session.state }}</h5>
     <Timer ref="timer" :active_user="active_user" :session="session" 
         :curr_seconds="curr_seconds" :max_seconds="max_seconds" />
@@ -28,6 +29,7 @@
 import Button from './Button';
 import ItemPrompt from './ItemPrompt';
 import ItemUser from './ItemUser';
+import SessionId from './SessionId';
 import Timer from './Timer';
 
 export default {
@@ -43,15 +45,20 @@ export default {
         Button,
         ItemPrompt,
         ItemUser,
+        SessionId,
         Timer
     },
     data() {
         return {
             clientUser: sessionStorage.getItem('username'),
-            timerStarted: false
+            timerStarted: false,
+            show_session_code: false
         };
     },
     methods: { 
+        clickHideSessionCode(e) {
+            this.show_session_code = !this.show_session_code;
+        },
         startTimer() {
             this.$emit('start-timer');
             this.timerStarted = true;
