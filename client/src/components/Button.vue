@@ -37,7 +37,7 @@ export default {
     text: String,
     color: String,
     icon: String,
-    icon_before: false
+    icon_before: Boolean
   },
   emits: [ 'btn-click' ]
 }
