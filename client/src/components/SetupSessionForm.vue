@@ -1,5 +1,6 @@
 <template>
-    <h2 class="center">{{ session_id }}</h2>
+    <SessionId :session_id="session_id" :show_session_code="show_session_code"
+        @hide-session-click="clickHideSessionCode" />
     <h4 class="center">Hey {{ username }}! Setup your new session.</h4>
     <p>Enter the prompts for debate (<i class="small">drag and drop to sort</i>):</p>
     <form @submit="onPromptSubmit" id="add-prompts-form">
@@ -25,26 +26,49 @@
     <p>Select options for the session:</p>
     <form id="options-form">
         <div class="form-control">
-            <label for="host-participate">
-                <div>Will the host participate in the debate?</div>
-                <input v-model="options.host_participate" type="checkbox" id="host-participate" />
-            </label>
-        </div>
-        <div class="form-control">
             <label for="time-min">
-                Participant response time? <i class="small">(mm:ss)</i>
+                Opening statement time: <i class="small">(mm:ss)</i>
             </label>
-            <input v-model="masked_participant_seconds" v-maska="'##:##'" placeholder="00:00"
+            <input v-model="masked_participant_seconds" v-maska="'##:##'" placeholder="01:00"
                 inputmode="numeric" />
         </div>
         <div class="form-control">
             <label for="time-roundtable">
-                Roundtable minutes? <span class="small">(enter '0' for no roundtable)</span>
+                Roundtable minutes: <span class="small">(enter '0' for no roundtable)</span>
             </label>
             <input v-model="masked_roundtable_minutes" v-maska="'##:00'"
-                id="time-roundtable" placeholder="01:00" size="2" max="99" min="0" 
+                id="time-roundtable" placeholder="10:00" size="2" max="99" min="0" 
                 inputmode="numeric" />
         </div>
+        <div class="form-control">
+            <label for="host-participate" class="checkbox" @click="clickHostPart">
+                <i class="far fa-check-square" v-if="options.host_participate"></i>
+                <i class="far fa-square" v-else></i>
+                <div>Will the host participate in the debate?</div>
+            </label>
+        </div>
+        <div class="form-control">
+            <label for="password-protect" class="checkbox" @click="clickPasswordProtect">
+                <i class="far fa-check-square" v-if="options.password_protected"></i>
+                <i class="far fa-square" v-else></i>
+                <div>Will the session be password protected?</div>
+            </label>
+        </div>
+        <template  v-if="options.password_protected">
+            <div class="form-control">
+                <label for="password">Password:</label>
+                <input v-model="options.password" type="password" id="password"
+                    @change="changePassword" :class="{ 'valid': password_valid }" />
+            </div>
+            <div class="form-control">
+                <label for="password_confirm">Confirm Password:</label>
+                <input v-model="options.password_confirm" type="password" id="password_confirm"
+                    @change="changePassword" :class="{
+                        'valid': password_valid,
+                        'invalid': !password_valid
+                    }" />
+            </div>
+        </template>        
     </form>
     <p>Users (<i class="small">drag and drop to sort</i>):</p>
     <ul id="user-list">
@@ -55,7 +79,7 @@
         </Draggable>
     </ul>
     <div class="center">
-        <Button text="Start Session" color="green" icon="fa-play" 
+        <Button text="Start Session" color="green" icon="fa-play" icon_before="true"
             @btn-click="onFormSubmit" />
     </div>
 </template>
@@ -64,6 +88,7 @@
 import draggable from 'vuedraggable';
 import Button from './Button';
 import ItemUser from './ItemUser';
+import SessionId from './SessionId';
 
 export default {
     name: "SetupSessionForm",
@@ -73,23 +98,64 @@ export default {
     components: {
         Draggable: draggable,
         Button,
-        ItemUser
+        ItemUser,
+        SessionId
     },
     data: () => ({
         clientUser: sessionStorage.getItem('username'),
         newPrompt: '',
         options: {
-            host_participate: true,
             participant_seconds: null,
-            roundtable_minutes: null
+            roundtable_minutes: null,
+            host_participate: false,
+            password_protected: false,
+            password: "",
+            password_confirm: ""
         },
         prompts: [],
         username: sessionStorage.getItem('username'),
         session_id: '',
-        masked_participant_seconds: "",
-        masked_roundtable_minutes: ""
+        masked_participant_seconds: "01:00",
+        masked_roundtable_minutes: "10:00",
+        show_session_code: true,
+        password_valid: true
     }),
     methods: {
+        deletePrompt(index) {
+            // if(confirm("Are you sure you want to delete the selected prompt?"))
+            this.prompts.splice(index, 1);
+        },
+        changePassword(e) {
+            if(password.value == password_confirm.value) {
+                this.password_valid = true;
+                this.$emit("password-protect", password.value );
+            } else {
+                this.password_valid = false;
+            }
+        },
+        clickHideSessionCode(e) {
+            this.show_session_code = !this.show_session_code;
+        },
+        clickHostPart(e) {
+            this.options.host_participate = !this.options.host_participate;
+        },
+        clickPasswordProtect(e) {
+            this.options.password_protected = !this.options.password_protected;
+        },
+        onFormSubmit(e) {
+            let masked_part_seconds = !!(this.masked_participant_seconds) 
+                ? this.masked_participant_seconds.split(":") : 0;
+            let masked_round_minutes = !!this.masked_roundtable_minutes 
+                ? this.masked_roundtable_minutes.split(":")[0] : 0;
+
+            this.options.participant_seconds = !(!!masked_part_seconds) ? masked_part_seconds 
+                : (parseInt(masked_part_seconds[0]) * 60) + parseInt(masked_part_seconds[1]);
+
+            this.options.roundtable_minutes = parseInt(masked_round_minutes);
+            
+            // console.log(this.options);
+            this.$emit('begin-session', { prompts: this.prompts, options: this.options });
+        },
         onPromptSubmit(e) {
             e.preventDefault();
 
@@ -97,21 +163,6 @@ export default {
                 this.prompts.push(this.newPrompt);
                 this.newPrompt = '';
             }
-        },
-        deletePrompt(index) {
-            // if(confirm("Are you sure you want to delete the selected prompt?"))
-            this.prompts.splice(index, 1);
-        },
-        onFormSubmit(e) {
-            let masked_part_seconds = this.masked_participant_seconds.split(":"),
-                masked_round_minutes = this.masked_roundtable_minutes.split(":");
-
-            this.options.participant_seconds = (parseInt(masked_part_seconds[0]) * 60)
-                + parseInt(masked_part_seconds[1]);
-            this.options.roundtable_minutes = parseInt(masked_round_minutes[0]);
-            
-            // console.log(this.options);
-            this.$emit('begin-session', { prompts: this.prompts, options: this.options })
         }
     },
     created() {
@@ -125,14 +176,49 @@ export default {
 h4{
     margin-bottom: 25px;
 }
+
 button.btn {
     font-size: 1rem !important;
 }
-label[for='host-participate'] {
+button.btn:hover {
+    background-color: green;
+}
+
+label.checkbox {
     display: flex;
 }
-label[for='host-participate'] div {
+label.checkbox div {
+    /* flex: 4; */
+    padding-left: 0.5rem;
+    cursor: pointer;
+}
+label.checkbox i {
+    font-size: 1.35rem;
+    cursor: pointer;
+}
+
+i.fa-check-square {
+    color: green;
+}
+
+input.valid {
+    border: solid 2px green;
+    /* border-radius: 5px; */
+}
+input.invalid {
+    border: solid 2px red;
+    /* border-radius: 5px; */
+}
+
+.time-field {
+    display: flex;
+    align-items: center;
+}
+.time-field label {
     flex: 4;
+}
+.time-field input {
+    width: 50px;
 }
 
 #add-prompts-form {
@@ -182,16 +268,5 @@ label[for='host-participate'] div {
 }
 #user-list li:hover {
     background-color: #555;
-}
-
-.time-field {
-    display: flex;
-    align-items: center;
-}
-.time-field label {
-    flex: 4;
-}
-.time-field input {
-    width: 50px;
 }
 </style>

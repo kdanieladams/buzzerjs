@@ -9,7 +9,8 @@
         <template v-if="!session_started">
             <WaitingRoom v-if="!is_host" />
             <SetupSessionForm v-if="is_host" :users="users"
-                @begin-session="startSession" @user-sort="sortUsers" />
+                @begin-session="startSession" @user-sort="sortUsers"
+                @password-protect="passwordProtect" />
         </template>
         <template v-if="session_started">
             <ActiveParticipant v-if="!is_host" :session="active_session"
@@ -64,6 +65,9 @@ export default {
         advanceUser() {
             this.socket.emit('advanceUser');
         },
+        passwordProtect(password) {
+            this.socket.emit('passwordProtectSession', { session_id: this.session_id, password: password });
+        },
         sortUsers(users) {
             let new_user_id_order = users.map(user => user.id);
 
@@ -73,26 +77,47 @@ export default {
             // Validate session setup form
             if(prompts.length == 0) {
                 alert('You must include at least one prompt.');
-            } else if(options.participant_seconds <= 0) {
-                alert('Participant response time must be greater than 0s.');
-            } else if(this.users.length <= 1) {
+                return;
+            } 
+            if(options.participant_seconds <= 0 || isNaN(options.participant_seconds)) {
+                alert('Opening Statement must be greater than 0s.');
+                return;
+            } 
+            if(options.password_protected 
+                && (!options.password || options.password != options.password_confirm)) 
+            {
+                alert('Passwords don\'t match!');
+                return;
+            } 
+            if(this.users.length <= 1) {
                 alert('There must be more than 1 user present to start the session.');
-            } else {
-                // Start the session
-                this.socket.emit('startSession', { prompts, options });
+                return;
             }
+            // Start the session
+            this.socket.emit('startSession', { prompts, options });
         },
         startTimer() {
             this.socket.emit('startTimer');
         },
-        verify(value, msg) {
+        verify(value, msg, user_id = 0) {
+            this.verified = value;
+
             if(!value) {
+                if(msg == "Password required." && !!user_id) {
+                    let pwd = prompt("Please enter the session password:");
+                    // emit event back to socket to test password...
+                    this.socket.emit('verifyPassword', { 
+                        session_id: this.session_id,
+                        user_id: user_id,
+                        password: pwd
+                    });
+                    return;
+                }
+
                 alert(msg);
                 this.$router.push('/');
                 return;
             }
-
-            this.verified = value;
         }
     },
     created() {
@@ -113,10 +138,12 @@ export default {
             session_id: this.session_id,
             is_host: this.is_host
         });
-        this.socket.on('verification', ({ value, msg, started, session }) => {
-            this.verify(value, msg);
-            this.session_started = started;
-            this.active_session = session;
+        this.socket.on('verification', ({ value, msg, started, session, user_id }) => {
+            this.verify(value, msg, user_id);
+            if(this.verified) {
+                this.session_started = started;
+                this.active_session = session;
+            }
         });
 
         // Handle session start

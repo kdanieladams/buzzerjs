@@ -6,16 +6,7 @@ const express = require('express');
 const socketio = require('socket.io');
 
 // App Imports
-const {
-    eventAdvancePrompt,
-    eventAdvanceSession,
-    eventAdvanceUser,
-    eventDisconnect,
-    eventReorderUsers,
-    eventStartSession,
-    eventVerify,
-    eventStartTimer
-} = require('./utils/sockets');
+const socketEvents = require('./utils/sockets');
 
 // Config
 dotenv.config();
@@ -30,6 +21,7 @@ let io = null;
 
 // Allow CORS in Dev Mode
 if(process.env.NODE_ENV == 'development') {
+    console.log('CORS Header: ' + DEV_CLIENT_ADDR);
     io = socketio(server, {
         cors: {
             origin: `http://${DEV_CLIENT_ADDR}`,
@@ -44,35 +36,43 @@ else {
 // Websocket Setup
 io.on('connection', socket => {
     socket.on('verify', ({ username, session_id, is_host }) => {
-        eventVerify(io, socket, { username, session_id, is_host });
+        socketEvents.eventVerify(io, socket, { username, session_id, is_host });
     });
-    
+
+    socket.on('verifyPassword', ({ session_id, password, user_id }) => {
+        socketEvents.eventVerifyPassword(io, socket, { session_id, password, user_id });
+    });
+
     socket.on('reorderUsers', (new_user_id_order) => {
-        eventReorderUsers(io, socket, new_user_id_order);
+        socketEvents.eventReorderUsers(io, socket, new_user_id_order);
     });
     
+    socket.on('passwordProtectSession', ({ session_id, password }) => {
+        socketEvents.eventPasswordProtectSession(io, socket, { session_id, password });
+    });
+
     socket.on('startSession', ({ prompts, options }) => {
-        eventStartSession(io, socket, { prompts, options });
+        socketEvents.eventStartSession(io, socket, { prompts, options });
     });
 
     socket.on('startTimer', () => {
-        eventStartTimer(io, socket);
+        socketEvents.eventStartTimer(io, socket);
     });
 
     socket.on('advanceUser', () => {
-        eventAdvanceUser(io, socket);
+        socketEvents.eventAdvanceUser(io, socket);
     });
 
     socket.on('advancePrompt', () => {
-        eventAdvancePrompt(io, socket);
+        socketEvents.eventAdvancePrompt(io, socket);
     });
 
     socket.on('advanceSession', () => {
-        eventAdvanceSession(io, socket);
+        socketEvents.eventAdvanceSession(io, socket);
     });
 
     socket.on('disconnect', () => {
-        eventDisconnect(io, socket);
+        socketEvents.eventDisconnect(io, socket);
     });
 });
 

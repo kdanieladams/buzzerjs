@@ -19,7 +19,8 @@ const {
     destroySession,
     getSession,
     setUserOrder,
-    validateSession
+    validateSession,
+    validatePassword
 } = require('./sessions');
 
 /**
@@ -258,29 +259,32 @@ function eventStartSession(io, socket, params) {
         user = getUserBySocket(socket.id),
         session = getSession(user.session_id);
 
-        // Translate session props
-        session.state = 'opening';
-        session.prompts = prompts.map(prompt => {
-            return { 
-                text: prompt,
-                state: '' // '', 'active', 'finished'
-            };
-        });
+    // Translate session props
+    session.state = 'opening';
+    session.prompts = prompts.map(prompt => {
+        return { 
+            text: prompt,
+            state: '' // '', 'active', 'finished'
+        };
+    });
 
-        session.host_participate = options.host_participate;
-        session.roundtable_minutes = parseInt(options.roundtable_minutes);
-        session.participant_seconds = parseInt(options.participant_seconds);
+    session.host_participate = options.host_participate;
+    session.roundtable_minutes = parseInt(options.roundtable_minutes);
+    session.participant_seconds = parseInt(options.participant_seconds);
 
-        if(!session.host_participate) {
-            let hostIndex = session.user_id_order
-                .findIndex(user_id => user_id == session.host_id);
+    if(options.password_protected)
+        session.password = options.password;
 
-            session.user_id_order.splice(hostIndex, 1);
-            updateUserList(io, session.id);
-        }
+    if(!session.host_participate) {
+        let hostIndex = session.user_id_order
+            .findIndex(user_id => user_id == session.host_id);
 
-        io.to(session.id).emit('sessionStarted', session);
-        // console.log(`session ${session.id} started...`, session, options);
+        session.user_id_order.splice(hostIndex, 1);
+        updateUserList(io, session.id);
+    }
+
+    io.to(session.id).emit('sessionStarted', session);
+    // console.log(`session ${session.id} started...`, session, options);
 }
 function eventStartTimer(io, socket) {
     let user = getUserBySocket(socket.id),
@@ -320,6 +324,13 @@ function eventStartTimer(io, socket) {
         session.timer = parseInt(timer);
     }
 }
+function eventPasswordProtectSession(io, socket, params) {
+    let { session_id, password } = params;
+    let session = getSession(session_id);
+
+    session.password = password;
+    return;
+}
 function eventVerify(io, socket, params) {
     let { username, session_id, is_host } = params;
 
@@ -340,7 +351,9 @@ function eventVerify(io, socket, params) {
         socket.id);
 
     // Create session if it doesn't exist
-    if(is_host) createSession(session_id, user.id);
+    if(is_host){
+        createSession(session_id, user.id);
+    }
 
     // Validate session id
     if(!validateSession(session_id)) {
@@ -354,6 +367,17 @@ function eventVerify(io, socket, params) {
 
     // Get session info
     let session = getSession(user.session_id);
+
+    // Check for password, redirect logic to password verification
+    if(!is_host && session.password) {
+        socket.emit('verification', {
+            value: false,
+            msg: 'Password required.',
+            user_id: user.id
+        });
+
+        return;
+    }
 
     session.user_id_order.push(user.id);
 
@@ -371,6 +395,35 @@ function eventVerify(io, socket, params) {
     // Emit updated user list
     updateUserList(io, user.session_id);
 }
+function eventVerifyPassword(io, socket, params) {
+    let { session_id, password, user_id } = params;
+    let session = getSession(session_id);
+    let user = getUserById(user_id);
+
+    if(validatePassword(password, session_id)) {
+        // Confirm success
+        socket.emit('verification', {
+            value: true,
+            msg: 'Successfully connected!',
+            started: (session.state != ''),
+            session: session
+        });
+
+        // Join the session
+        session.user_id_order.push(user.id);
+        socket.join(user.session_id);
+        updateUserList(io, user.session_id);
+    } else {
+        socket.emit('verification', {
+            value: false,
+            msg: 'Password required.'
+        });
+
+        return;
+    }
+
+    return;
+}
 
 
 module.exports = {
@@ -378,8 +431,10 @@ module.exports = {
     eventAdvanceSession,
     eventAdvanceUser,
     eventDisconnect,
+    eventPasswordProtectSession,
     eventReorderUsers,
     eventStartSession,
     eventStartTimer,
-    eventVerify
+    eventVerify,
+    eventVerifyPassword
 };

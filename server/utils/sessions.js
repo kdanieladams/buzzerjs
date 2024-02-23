@@ -7,6 +7,7 @@ function createSession(session_id, host_id) {
         session = { 
             id: session_id,
             host_id: host_id,
+            password: "",
             prompts: [],
             host_participate: false,
             participant_seconds: 0,
@@ -16,7 +17,8 @@ function createSession(session_id, host_id) {
             user_id_order: []
         };
         sessions.push(session);
-        console.log(`session ${session.id} created...`);
+        console.log(new Date() + `: session ${session.id} created...`);
+        // console.log("sessions list: " + sessions.map(s => s.id));
     }
     
     return session;
@@ -45,10 +47,16 @@ function validateSession(session_id) {
     return valid;
 }
 
+function validatePassword(pwd, session_id) {
+    let session = getSession(session_id);
+    return pwd == session.password;
+}
+
 module.exports = {
     createSession,
     destroySession,
     getSession,
     setUserOrder,
-    validateSession
+    validateSession,
+    validatePassword
 };
