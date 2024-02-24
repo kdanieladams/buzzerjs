@@ -26,11 +26,11 @@
 </template>
 
 <script>
-import Button from './Button';
-import ItemPrompt from './ItemPrompt';
-import ItemUser from './ItemUser';
-import SessionId from './SessionId';
-import Timer from './Timer';
+import Button from './elements/Button';
+import ItemPrompt from './elements/ItemPrompt';
+import ItemUser from './elements/ItemUser';
+import SessionId from './elements/SessionId';
+import Timer from './elements/Timer';
 
 export default {
     name: 'ActiveParticipant',

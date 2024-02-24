@@ -12,7 +12,7 @@
 </template>
 
 <script>
-import Button from '../components/Button';
+import Button from '../components/elements/Button';
 import RegistrationForm from '../components/RegistrationForm';
 
 export default {

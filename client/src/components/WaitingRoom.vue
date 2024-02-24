@@ -7,7 +7,7 @@
 </template>
 
 <script>
-import Button from './Button';
+import Button from './elements/Button';
 
 export default {
     name: 'WaitingRoom',

@@ -86,9 +86,9 @@
 
 <script>
 import draggable from 'vuedraggable';
-import Button from './Button';
-import ItemUser from './ItemUser';
-import SessionId from './SessionId';
+import Button from './elements/Button';
+import ItemUser from './elements/ItemUser';
+import SessionId from './elements/SessionId';
 
 export default {
     name: "SetupSessionForm",
