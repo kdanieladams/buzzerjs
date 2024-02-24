@@ -256,7 +256,8 @@ function eventVerifyPassword(io, socket, params) {
             value: false,
             msg: 'Password required.'
         });
-
+        
+        console.log(new Date() + `: failed password attempt on session: ${session.id} by user: ${user.username}`);
         return;
     }
 
