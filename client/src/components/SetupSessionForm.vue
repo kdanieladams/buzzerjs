@@ -74,7 +74,8 @@
     <ul id="user-list">
         <Draggable :list="users" item-key="id" @end="$emit('user-sort', users)">
             <template #item="{ element, index }">
-                <ItemUser :user="element" :client_username="clientUser" />
+                <ItemUser :user="element" :client_username="clientUser" :client_is_host="true"
+                    @remove-user="clickRemoveUser" />
             </template>
         </Draggable>
     </ul>
@@ -142,6 +143,9 @@ export default {
         clickPasswordProtect(e) {
             this.options.password_protected = !this.options.password_protected;
         },
+        clickRemoveUser(user) {
+            this.$emit('remove-user', user.id);
+        },
         onFormSubmit(e) {
             let masked_part_seconds = !!(this.masked_participant_seconds) 
                 ? this.masked_participant_seconds.split(":") : 0;
@@ -167,7 +171,12 @@ export default {
     created() {
         this.session_id = this.$route.params.session_id;
     },
-    emits: [ 'begin-session', 'user-sort' ]
+    emits: [ 
+        'begin-session', 
+        'user-sort', 
+        'password-protect',
+        'remove-user' 
+    ]
 }
 </script>
 

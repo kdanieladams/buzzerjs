@@ -43,6 +43,10 @@ io.on('connection', socket => {
         SocketEvents.eventVerifyPassword(io, socket, { session_id, password, user_id });
     });
 
+    socket.on('removeUser', (user_id) => {
+        SocketEvents.eventRemoveUser(io, socket, user_id);
+    });
+
     socket.on('reorderUsers', (new_user_id_order) => {
         SocketEvents.eventReorderUsers(io, socket, new_user_id_order);
     });
@@ -80,4 +84,4 @@ io.on('connection', socket => {
 if(process.env.NODE_ENV == 'production')
     app.use(express.static(path.join(__dirname, 'www')));
 
-server.listen(PORT, "127.0.0.1", () => console.log(new Date() + `: Server running on port ${PORT}`));
+server.listen(PORT, "127.0.0.1", () => console.log(`Server running on port ${PORT}`));

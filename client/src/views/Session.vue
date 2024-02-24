@@ -10,7 +10,7 @@
             <WaitingRoom v-if="!is_host" />
             <SetupSessionForm v-if="is_host" :users="users"
                 @begin-session="startSession" @user-sort="sortUsers"
-                @password-protect="passwordProtect" />
+                @password-protect="passwordProtect" @remove-user="removeUser" />
         </template>
         <template v-if="session_started">
             <ActiveParticipant v-if="!is_host" :session="active_session"
@@ -21,7 +21,8 @@
                 :users="users" :active_user="active_user" 
                 :curr_seconds="curr_seconds" :max_seconds="max_seconds" 
                 @start-timer="startTimer" @advance-session="advanceSession" 
-                @advance-prompt="advancePrompt" @advance-user="advanceUser" />
+                @advance-prompt="advancePrompt" @advance-user="advanceUser"
+                @remove-user="removeUser" />
         </template>
     </template>
 </template>
@@ -67,6 +68,9 @@ export default {
         },
         passwordProtect(password) {
             this.socket.emit('passwordProtectSession', { session_id: this.session_id, password: password });
+        },
+        removeUser(user_id) {
+            this.socket.emit('removeUser', user_id);
         },
         sortUsers(users) {
             let new_user_id_order = users.map(user => user.id);
@@ -114,7 +118,7 @@ export default {
                     return;
                 }
 
-                alert(msg);
+                sessionStorage.setItem("appErr", msg);
                 this.$router.push('/');
                 return;
             }
@@ -173,8 +177,17 @@ export default {
 
         // Handle session end
         this.socket.on('sessionEnd', msg => {
-            alert(msg);
+            sessionStorage.setItem("appErr", msg);
             this.$router.push('/');
+        });
+
+        // Handle removed user
+        this.socket.on('removedUser', user => {
+            if(sessionStorage.getItem('username') == user.username) {
+                let msg = "You've been removed from the session by the host."
+                sessionStorage.setItem("appErr", msg);
+                this.$router.push('/');
+            }
         });
     },
     beforeUnmount() {

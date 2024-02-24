@@ -19,7 +19,8 @@
     <p>Users:</p>
     <ul id="user-list">
         <template v-for="(user, i) in users">
-            <ItemUser :user="user" :client_username="clientUser" />
+            <ItemUser :user="user" :client_username="clientUser" :client_is_host="true"
+                @remove-user="clickRemoveUser" />
         </template>
     </ul>
     <hr />
@@ -114,6 +115,9 @@ export default {
         clickHideSessionCode(e) {
             this.show_session_code = !this.show_session_code;
         },
+        clickRemoveUser(user) {
+            this.$emit('remove-user', user.id);
+        },
         startTimer() {
             this.$emit('start-timer');
             this.timerStarted = true;
@@ -156,6 +160,7 @@ export default {
         'advance-prompt', 
         'advance-session', 
         'advance-user',
+        'remove-user',
         'start-timer'
     ]
 }

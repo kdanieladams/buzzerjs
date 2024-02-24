@@ -68,6 +68,13 @@ function eventDisconnect(io, socket) {
     }
 }
 
+function eventRemoveUser(io, socket, user_id) {
+    let user = Users.getUserById(user_id);
+    
+    console.log(`eventRemoveUser: host removed ${user.username} from ${user.session_id}`);
+    io.to(user.session_id).emit('removedUser', user);
+}
+
 function eventReorderUsers(io, socket, new_user_id_order) {
     let user = Users.getUserBySocket(socket.id),
         session = Sessions.getSession(user.session_id);
@@ -272,6 +279,7 @@ module.exports = {
     eventAdvanceUser,
     eventDisconnect,
     eventPasswordProtectSession,
+    eventRemoveUser,
     eventReorderUsers,
     eventStartSession,
     eventStartTimer,

@@ -36,6 +36,15 @@ export default {
             this.showRegistrationForm = false;
             this.isHosting = false;
         }
+    },
+    mounted() {
+        let err = sessionStorage.getItem("appErr");
+        
+        if(err) {
+            // trigger the alert *after* the view is displayed
+            setTimeout((e) => { alert(err); }, 250);
+            sessionStorage.removeItem("appErr");
+        }
     }
 }
 </script>
