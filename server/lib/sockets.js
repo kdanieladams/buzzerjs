@@ -45,7 +45,7 @@ function eventDisconnect(io, socket) {
         
         // Destroy the user
         user = Users.userLeave(user.id);
-        console.log(new Date() + `: ${user.username} disconnected...`); 
+        console.log(`${user.username} disconnected...`); 
         
         // Emit updated user list
         if(session){
@@ -59,7 +59,7 @@ function eventDisconnect(io, socket) {
         // Destroy the session
         if(session && session.host_id == user.id) {
             Sessions.destroySession(session.id);
-            console.log(new Date() + `: session ${session.id} destroyed...`);
+            console.log(`session ${session.id} destroyed...`);
 
             io.to(session.id).emit('sessionEnd', 'The host has closed the session.');
         }
@@ -257,7 +257,7 @@ function eventVerifyPassword(io, socket, params) {
             msg: 'Password required.'
         });
         
-        console.log(new Date() + `: failed password attempt on session: ${session.id} by user: ${user.username}`);
+        console.log(`failed password attempt on session: ${session.id} by user: ${user.username}`);
         return;
     }
 

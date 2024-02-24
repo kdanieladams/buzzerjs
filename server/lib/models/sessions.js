@@ -1,5 +1,8 @@
 const sessions = [];
 
+/**
+ * Sessions Model
+ */
 function createSession(session_id, host_id) {
     let session = sessions.find(s => s.id == session_id);
 
@@ -17,7 +20,7 @@ function createSession(session_id, host_id) {
             user_id_order: []
         };
         sessions.push(session);
-        console.log(new Date() + `: session ${session.id} created...`);
+        console.log(`session ${session.id} created...`);
         // console.log("sessions list: " + sessions.map(s => s.id));
     }
     

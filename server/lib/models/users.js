@@ -1,5 +1,8 @@
 const users = [];
 
+/**
+ * Users Model
+ */
 function generateUserId() {
     let userid = '',
         characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890",
@@ -23,7 +26,7 @@ function userJoin(username, ip, session_id, socket_id) {
     };
 
     users.push(user);
-    console.log(new Date() + `: user joined ${session_id}`, user.username, user.id, user.ip);
+    console.log(`user joined ${session_id}`, user.username, user.id, user.ip);
     return user;
 }
 

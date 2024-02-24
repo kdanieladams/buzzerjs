@@ -118,7 +118,7 @@ export default {
         masked_participant_seconds: "01:00",
         masked_roundtable_minutes: "10:00",
         show_session_code: true,
-        password_valid: true
+        password_valid: false
     }),
     methods: {
         deletePrompt(index) {
