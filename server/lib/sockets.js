@@ -52,11 +52,13 @@ function eventDisconnect(io, socket) {
             let userIdIndex = session.user_id_order
                 .findIndex(user_id => user_id == user.id);
 
-            session.user_id_order.splice(userIdIndex, 1);
-            Utils.updateUserList(io, session.id);
+            if(userIdIndex > -1) {
+                session.user_id_order.splice(userIdIndex, 1);
+                Utils.updateUserList(io, session.id);
+            }
         }
 
-        // Destroy the session
+        // If user is host, destroy the session
         if(session && session.host_id == user.id) {
             Sessions.destroySession(session.id);
             console.log(`session ${session.id} destroyed...`);
@@ -254,7 +256,7 @@ function eventVerifyPassword(io, socket, params) {
     } else {
         socket.emit('verification', {
             value: false,
-            msg: 'Password required.'
+            msg: 'Incorrect password.'
         });
         
         console.log(`failed password attempt on session: ${session.id} by user: ${user.username}`);
