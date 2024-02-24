@@ -6,7 +6,7 @@ const express = require('express');
 const socketio = require('socket.io');
 
 // App Imports
-const socketEvents = require('./utils/sockets');
+const SocketEvents = require('./lib/sockets');
 
 // Config
 dotenv.config();
@@ -36,43 +36,43 @@ else {
 // Websocket Setup
 io.on('connection', socket => {
     socket.on('verify', ({ username, session_id, is_host }) => {
-        socketEvents.eventVerify(io, socket, { username, session_id, is_host });
+        SocketEvents.eventVerify(io, socket, { username, session_id, is_host });
     });
 
     socket.on('verifyPassword', ({ session_id, password, user_id }) => {
-        socketEvents.eventVerifyPassword(io, socket, { session_id, password, user_id });
+        SocketEvents.eventVerifyPassword(io, socket, { session_id, password, user_id });
     });
 
     socket.on('reorderUsers', (new_user_id_order) => {
-        socketEvents.eventReorderUsers(io, socket, new_user_id_order);
+        SocketEvents.eventReorderUsers(io, socket, new_user_id_order);
     });
     
     socket.on('passwordProtectSession', ({ session_id, password }) => {
-        socketEvents.eventPasswordProtectSession(io, socket, { session_id, password });
+        SocketEvents.eventPasswordProtectSession(io, socket, { session_id, password });
     });
 
     socket.on('startSession', ({ prompts, options }) => {
-        socketEvents.eventStartSession(io, socket, { prompts, options });
+        SocketEvents.eventStartSession(io, socket, { prompts, options });
     });
 
     socket.on('startTimer', () => {
-        socketEvents.eventStartTimer(io, socket);
+        SocketEvents.eventStartTimer(io, socket);
     });
 
     socket.on('advanceUser', () => {
-        socketEvents.eventAdvanceUser(io, socket);
+        SocketEvents.eventAdvanceUser(io, socket);
     });
 
     socket.on('advancePrompt', () => {
-        socketEvents.eventAdvancePrompt(io, socket);
+        SocketEvents.eventAdvancePrompt(io, socket);
     });
 
     socket.on('advanceSession', () => {
-        socketEvents.eventAdvanceSession(io, socket);
+        SocketEvents.eventAdvanceSession(io, socket);
     });
 
     socket.on('disconnect', () => {
-        socketEvents.eventDisconnect(io, socket);
+        SocketEvents.eventDisconnect(io, socket);
     });
 });
 
