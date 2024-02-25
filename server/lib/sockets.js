@@ -109,7 +109,7 @@ function eventStartSession(io, socket, params) {
     session.prompts = prompts.map(prompt => {
         return { 
             text: prompt,
-            state: '' // '', 'active', 'roundtable', 'finished'
+            state: Sessions.promptPhase[0]
         };
     });
 
@@ -154,7 +154,7 @@ function eventStartTimer(io, socket) {
             if(currSeconds == 0) {
                 Utils.resetTimer(session);
                 
-                if(activePrompt.state == 'roundtable') {
+                if(activePrompt.state == Sessions.promptPhase[2]) {
                     Utils.advancePrompt(session);
                 } else {
                     Utils.advanceUser(session);

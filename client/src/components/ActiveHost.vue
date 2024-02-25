@@ -112,13 +112,13 @@ export default {
     computed: {
         showTimerBtn() {
             let activePrompt = this.session.prompts
-                .find(p => p.state == 'active' || p.state == 'roundtable');
+                .find(p => p.state == 'Opening' || p.state == 'Roundtable');
             
             return (this.active_user && this.active_user.username == this.clientUser) 
-                || (activePrompt && activePrompt.state == 'roundtable');
+                || (activePrompt && activePrompt.state == 'Roundtable');
         },
         isRoundtable() {
-            let roundtableIndex = this.session.prompts.findIndex(p => p.state == 'roundtable');
+            let roundtableIndex = this.session.prompts.findIndex(p => p.state == 'Roundtable');
             return (roundtableIndex != -1);
         }
     },

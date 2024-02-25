@@ -1,6 +1,6 @@
 <template>
     <div :class="'prompt ' + prompt.state">
-        <i v-if="prompt.state == 'active' || prompt.state == 'roundtable'" 
+        <i v-if="prompt.state == 'Opening' || prompt.state == 'Roundtable'" 
             class="far fa-question-circle"></i> 
         {{ prompt.text }}
     </div>

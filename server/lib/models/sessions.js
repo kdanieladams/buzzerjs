@@ -1,10 +1,18 @@
 const sessions = [];
 
 const sessionPhase = {
-    0: "Init",
+    0: "Introduction",
     1: "In Progress",
     2: "Outtro"
 };
+
+const promptPhase = {
+    0: "Init",
+    1: "Opening",
+    2: "Roundtable",
+    3: "Closing",
+    4: "Finished"
+}
 
 /**
  * Sessions Model
@@ -65,6 +73,7 @@ module.exports = {
     destroySession,
     getSession,
     sessionPhase,
+    promptPhase,
     setUserOrder,
     validateSession,
     validatePassword

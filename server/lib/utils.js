@@ -36,17 +36,17 @@ function advancePrompt(session) {
     let maxSeconds = (session.roundtable_minutes * 60);
 
     if(activePrompt) {
-        activePrompt.state = (activePrompt.state == 'active' && maxSeconds != 0) 
-            ? 'roundtable' : 'finished';
+        activePrompt.state = (activePrompt.state == Sessions.promptPhase[1] && maxSeconds != 0) 
+            ? Sessions.promptPhase[2] : Sessions.promptPhase[4];
 
         resetTimer(session);
         users.forEach(user => user.state = Users.userState[0]);
 
-        if(nextPrompt && (activePrompt.state == 'finished' || maxSeconds == 0)) {
+        if(nextPrompt && (activePrompt.state == Sessions.promptPhase[4] || maxSeconds == 0)) {
             // Activate nextPrompt
-            nextPrompt.state = 'active';
+            nextPrompt.state = Sessions.promptPhase[1];
             users[0].state = Users.userState[1];
-        } else if(activePrompt.state == 'finished') {
+        } else if(activePrompt.state == Sessions.promptPhase[4]) {
             // Advance the session
             advanceSession(session);
         } 
@@ -64,12 +64,12 @@ function advanceSession(session) {
     if(session.state == Sessions.sessionPhase[1]) {
         // Activate first prompt and user
         users[0].state = Users.userState[1];
-        session.prompts[0].state = 'active';
+        session.prompts[0].state = Sessions.promptPhase[1];
     }
     else if(session.state == Sessions.sessionPhase[2]) {
         // Advance all prompts, clear active user
         users.forEach(user => user.state = Users.userState[2]);
-        session.prompts.forEach(prompt => prompt.state = 'finished');
+        session.prompts.forEach(prompt => prompt.state = Sessions.promptPhase[4]);
         
         // Reset the timer
         resetTimer(session);
@@ -84,8 +84,8 @@ function getSessionState(session) {
         maxSeconds          = session.participant_seconds,
         currSeconds         = maxSeconds,
         activePromptIndex   = session.prompts
-            .findIndex(prompt => prompt.state == 'active' 
-                || prompt.state == 'roundtable'),
+            .findIndex(prompt => prompt.state == Sessions.promptPhase[1] 
+                || prompt.state == Sessions.promptPhase[2]),
         activePrompt        = session.prompts[activePromptIndex],
         nextPrompt          = session.prompts[activePromptIndex + 1];
     
@@ -101,7 +101,7 @@ function getSessionState(session) {
         nextPrompt
     };
 
-    if(activePrompt && activePrompt.state == 'roundtable') {
+    if(activePrompt && activePrompt.state == Sessions.promptPhase[2]) {
         stateObj.maxSeconds = (session.roundtable_minutes * 60);
         stateObj.currSeconds = stateObj.maxSeconds;
         

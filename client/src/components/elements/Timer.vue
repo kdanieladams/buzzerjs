@@ -53,8 +53,8 @@ export default {
     },
     computed: {
         timerText() {
-            let roundtablePrompt = this.session.prompts.find(p => p.state == 'roundtable');
-            return roundtablePrompt ? 'Roundtable Discussion' 
+            let roundtablePrompt = this.session.prompts.find(p => p.state == 'Roundtable');
+            return roundtablePrompt ? 'Roundtable' 
                 : (this.active_user) ? this.active_user.username : ''
         }
     },
