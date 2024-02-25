@@ -15,11 +15,11 @@ const Sessions = require('./models/sessions');
 
     if(activePrompt && currUser) {
         // Update current user
-        currUser.state = 'spoken';
+        currUser.state = Users.userState[2];
 
         if(nextUser) {
             // Activate the next user
-            nextUser.state = 'active';
+            nextUser.state = Users.userState[1];
         } else {
             // Advance prompt if at end of user list
             advancePrompt(session);
@@ -40,12 +40,12 @@ function advancePrompt(session) {
             ? 'roundtable' : 'finished';
 
         resetTimer(session);
-        users.forEach(user => user.state = '');
+        users.forEach(user => user.state = Users.userState[0]);
 
         if(nextPrompt && (activePrompt.state == 'finished' || maxSeconds == 0)) {
             // Activate nextPrompt
             nextPrompt.state = 'active';
-            users[0].state = 'active';
+            users[0].state = Users.userState[1];
         } else if(activePrompt.state == 'finished') {
             // Advance the session
             advanceSession(session);
@@ -63,12 +63,12 @@ function advanceSession(session) {
 
     if(session.state == Sessions.sessionPhase[1]) {
         // Activate first prompt and user
-        users[0].state = 'active';
+        users[0].state = Users.userState[1];
         session.prompts[0].state = 'active';
     }
     else if(session.state == Sessions.sessionPhase[2]) {
         // Advance all prompts, clear active user
-        users.forEach(user => user.state = 'spoken');
+        users.forEach(user => user.state = Users.userState[2]);
         session.prompts.forEach(prompt => prompt.state = 'finished');
         
         // Reset the timer
@@ -78,7 +78,7 @@ function advanceSession(session) {
 
 function getSessionState(session) {
     let users               = sortUsers(session.id),
-        currUserIndex       = users.findIndex(usr => usr.state == 'active'),
+        currUserIndex       = users.findIndex(usr => usr.state == Users.userState[1]),
         currUser            = users[currUserIndex],
         nextUser            = users[currUserIndex + 1],
         maxSeconds          = session.participant_seconds,

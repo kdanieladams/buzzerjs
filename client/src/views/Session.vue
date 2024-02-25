@@ -160,7 +160,7 @@ export default {
         this.socket.on('userList', ({ session_id, users }) => {
             if(this.active_session && this.active_session.id == session_id) {
                 this.users = users;
-                this.active_user = users.find(usr => usr.state == 'active');
+                this.active_user = users.find(usr => usr.state == 'Active');
             }
         });
 

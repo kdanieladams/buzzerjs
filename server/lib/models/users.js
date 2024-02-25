@@ -1,5 +1,11 @@
 const users = [];
 
+const userState = {
+    0: "Init",
+    1: "Active",
+    2: "Spoken"
+};
+
 /**
  * Users Model
  */
@@ -22,7 +28,7 @@ function userJoin(username, ip, session_id, socket_id) {
         ip, 
         session_id,
         socket_id,
-        state: '' // '', 'active', 'spoken'
+        state: userState[0]
     };
 
     users.push(user);
@@ -65,5 +71,6 @@ module.exports = {
     getUserBySocket,
     userJoin,
     userLeave,
+    userState,
     validateUser
 };

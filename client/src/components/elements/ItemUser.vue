@@ -1,9 +1,9 @@
 <template>
     <li :class="user.state">
         <div>
-            <i v-if="user.state == 'active'" class="fas fa-user-clock"></i>
-            <i v-if="user.state == 'spoken'" class="far fa-user"></i>
-            <i v-if="!user.state" class="fas fa-user"></i>
+            <i v-if="user.state == 'Active'" class="fas fa-user-clock"></i>
+            <i v-if="user.state == 'Spoken'" class="far fa-user"></i>
+            <i v-if="user.state == 'Init'" class="fas fa-user"></i>
             {{ user.username }}
             <i v-if="client_username == user.username" class="small">(you)</i>
         </div>
