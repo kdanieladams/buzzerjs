@@ -31,6 +31,23 @@
         </span>
     </p>
     <p class="session-property">
+        Session is password protected? 
+        <span class="value" :style="!!session.password ? 'color: green;' : 'color: red;'">
+            {{ !!session.password ? "true" : "false" }}
+        </span>
+    </p>
+    <p v-if="!!session.password" class="session-property password-display">
+        Password: 
+        <span v-if="show_password" class="value">
+            {{ session.password }}
+            <i class="fas fa-eye-slash" @click="clickShowPassword" />
+        </span>
+        <span v-if="!show_password" class="value">
+            {{ masked_password }}
+            <i class="fas fa-eye" @click="clickShowPassword" />
+        </span>
+    </p>
+    <p class="session-property">
         Participant time:
         <span class="value">
             {{ translatedSeconds }}
@@ -82,6 +99,8 @@ export default {
             translatedSeconds: '0:00',
             timerStarted: false,
             show_session_code: true,
+            show_password: false,
+            masked_password: "",
             btnPrimaryProps: {
                 text: 'Begin Debate',
                 color: 'green',
@@ -118,6 +137,18 @@ export default {
         clickRemoveUser(user) {
             this.$emit('remove-user', user.id);
         },
+        clickShowPassword(e) {
+            this.show_password = !this.show_password;
+            if(!this.show_password) 
+                this.masked_password = this.passwordify(this.session.password);
+        },
+        passwordify(str) {
+            let output = "";
+            for(let i = 0; i < str.length; i++) {
+                output += "* ";
+            }
+            return output;
+        },
         startTimer() {
             this.$emit('start-timer');
             this.timerStarted = true;
@@ -126,6 +157,10 @@ export default {
     mounted() {
         this.translatedSeconds = this.$refs.timer.translateSeconds(this.session.participant_seconds);
         
+        if(!!this.session.password) {
+            this.masked_password = this.passwordify(this.session.password);
+        }
+
         this.$watch('active_user', () => {
                 this.timerStarted = false;
         });
@@ -180,6 +215,9 @@ p.session-property {
 p.session-property .value {
     font-weight: bold;
     color: #ccc;
+}
+p.session-property.password-display i:hover {
+    cursor: pointer;
 }
 
 #user-list {
