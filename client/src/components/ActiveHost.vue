@@ -58,7 +58,7 @@
         <span class="value">{{ session.roundtable_minutes }}:00</span>
     </p>
     <div class="right">
-        <template v-if="session.state == 'started'">
+        <template v-if="session.state == 'In Progress'">
             <Button v-if="!isRoundtable" text="Next User" icon="fa-angle-double-right"
                 @btn-click="$emit('advance-user')" /> 
             <Button :text="(isRoundtable ? 'Next' : 'Advance') + ' Prompt'" icon="fa-angle-double-right" 
@@ -124,7 +124,7 @@ export default {
     },
     methods: { 
         btnPrimaryClick() {
-            if(this.session.state == 'closing') {
+            if(this.session.state == 'Outtro') {
                 this.$router.push('/');
                 return;
             }
@@ -166,7 +166,7 @@ export default {
         });
 
         this.$watch('session', (newSession, oldSession) => {
-            if(newSession.state == 'opening') {
+            if(newSession.state == 'Introduction') {
                 this.btnPrimaryProps = {
                     text: 'Begin Debate',
                     color: 'green',
@@ -174,7 +174,7 @@ export default {
                     icon_before: false
                 };
             }
-            else if(newSession.state == 'started') {
+            else if(newSession.state == 'In Progress') {
                 this.btnPrimaryProps = {
                     text: 'End Debate',
                     color: '#900',

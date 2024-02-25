@@ -105,11 +105,11 @@ function eventStartSession(io, socket, params) {
         session = Sessions.getSession(user.session_id);
 
     // Translate session props
-    session.state = 'opening';
+    session.state = Sessions.sessionPhase[0];
     session.prompts = prompts.map(prompt => {
         return { 
             text: prompt,
-            state: '' // '', 'active', 'finished'
+            state: '' // '', 'active', 'roundtable', 'finished'
         };
     });
 
@@ -231,7 +231,7 @@ function eventVerify(io, socket, params) {
     socket.emit('verification', {
         value: true,
         msg: 'Successfully connected!',
-        started: (session.state != ''),
+        started: (session.state != Sessions.sessionPhase[0]),
         session: session
     });
 
@@ -252,7 +252,7 @@ function eventVerifyPassword(io, socket, params) {
         socket.emit('verification', {
             value: true,
             msg: 'Successfully connected!',
-            started: (session.state != ''),
+            started: (session.state != Sessions.sessionPhase[0]),
             session: session
         });
 

@@ -54,17 +54,19 @@ function advancePrompt(session) {
 }
 
 function advanceSession(session) { 
-    let users = sortUsers(session.id);
+    let users = sortUsers(session.id),
+        sessionStateIndex = Object.keys(Sessions.sessionPhase)
+            .findIndex((phase) => session.state == Sessions.sessionPhase[phase]);
 
     // Advance session state
-    session.state = (session.state == 'opening') ? 'started' : 'closing';
+    session.state = Sessions.sessionPhase[sessionStateIndex + 1];
 
-    if(session.state == 'started') {
+    if(session.state == Sessions.sessionPhase[1]) {
         // Activate first prompt and user
         users[0].state = 'active';
         session.prompts[0].state = 'active';
     }
-    else if(session.state == 'closing') {
+    else if(session.state == Sessions.sessionPhase[2]) {
         // Advance all prompts, clear active user
         users.forEach(user => user.state = 'spoken');
         session.prompts.forEach(prompt => prompt.state = 'finished');
@@ -107,7 +109,7 @@ function getSessionState(session) {
             stateObj.maxSeconds = 1;
             stateObj.currSeconds = 0;
         }
-    } else if(session.state == 'closing') {
+    } else if(session.state == Sessions.sessionPhase[2]) {
         stateObj.maxSeconds = 1;
         stateObj.currSeconds = 0;
     }

@@ -1,5 +1,11 @@
 const sessions = [];
 
+const sessionPhase = {
+    0: "Init",
+    1: "In Progress",
+    2: "Outtro"
+};
+
 /**
  * Sessions Model
  */
@@ -15,7 +21,7 @@ function createSession(session_id, host_id) {
             host_participate: false,
             participant_seconds: 0,
             roundtable_minutes: 0,
-            state: '', // '', 'opening', 'started', 'closing'
+            state: sessionPhase[0], 
             timer: null,
             user_id_order: []
         };
@@ -58,6 +64,7 @@ module.exports = {
     createSession,
     destroySession,
     getSession,
+    sessionPhase,
     setUserOrder,
     validateSession,
     validatePassword
