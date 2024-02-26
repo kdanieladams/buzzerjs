@@ -43,20 +43,26 @@ function eventDisconnect(io, socket) {
     if(user) {
         let session = Sessions.getSession(user.session_id);
         
-        // Destroy the user
-        user = Users.userLeave(user.id);
-        console.log(`${user.username} disconnected...`); 
-        
-        // Emit updated user list
         if(session){
             let userIdIndex = session.user_id_order
                 .findIndex(user_id => user_id == user.id);
+            let { currUser } = Utils.getSessionState(session);
 
+            // If user is activeUser, trigger advanceUser()
+            if(currUser && currUser.id == user.id) {
+                Utils.advanceUser(session);
+            }
+
+            // Remove the user from the user-order list
             if(userIdIndex > -1) {
                 session.user_id_order.splice(userIdIndex, 1);
-                Utils.updateUserList(io, session.id);
             }
         }
+
+        // Destroy the user
+        user = Users.userLeave(user.id);
+        console.log(`${user.username} disconnected...`); 
+        Utils.updateUi(io, session);
 
         // If user is host, destroy the session
         if(session && session.host_id == user.id) {

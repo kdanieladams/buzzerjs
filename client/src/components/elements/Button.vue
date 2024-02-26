@@ -37,7 +37,7 @@ export default {
   },
   mounted() {
     this.$watch('color', (colorVal) => {
-      this.btnColor = colorVal;
+      this.btnColor = colorVal || '#555';
     });
   },
   emits: [ 'btn-click' ]

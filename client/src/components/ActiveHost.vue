@@ -61,7 +61,7 @@
         <template v-if="session.state == 'In Progress'">
             <Button v-if="!promptIsRoundtable" text="Next User" icon="fa-angle-double-right"
                 @btn-click="$emit('advance-user')" /> 
-            <Button :text="(promptIsFinished ? 'Next' : 'Advance') + ' Prompt'" icon="fa-angle-double-right" 
+            <Button :text="(promptIsClosing ? 'Next' : 'Advance') + ' Prompt'" icon="fa-angle-double-right" 
                 @btn-click="$emit('advance-prompt')" />
         </template>
         <Button :text="btnPrimaryProps.text" :color="btnPrimaryProps.color" 
@@ -120,9 +120,9 @@ export default {
             let roundtableIndex = this.session.prompts.findIndex(p => p.state == 'Roundtable');
             return (roundtableIndex != -1);
         },
-        promptIsFinished() {
+        promptIsClosing() {
             let activePrompt = this.session.prompts.find(p => p.state != 'Init' && p.state != 'Finished')
-            return activePrompt.state == 'Finished';
+            return activePrompt.state == 'Closing';
         }
     },
     methods: { 
