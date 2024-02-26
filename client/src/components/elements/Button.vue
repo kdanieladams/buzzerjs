@@ -35,6 +35,11 @@ export default {
       btnColor: this.color || '#555'
     };
   },
+  mounted() {
+    this.$watch('color', (colorVal) => {
+      this.btnColor = colorVal;
+    });
+  },
   emits: [ 'btn-click' ]
 }
 </script>
