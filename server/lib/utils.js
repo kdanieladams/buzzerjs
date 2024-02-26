@@ -33,16 +33,23 @@ function advancePrompt(session) {
         nextPrompt,
         users
     } = getSessionState(session);
-    let maxSeconds = (session.roundtable_minutes * 60);
 
     if(activePrompt) {
-        activePrompt.state = (activePrompt.state == Sessions.promptPhase[1] && maxSeconds != 0) 
-            ? Sessions.promptPhase[2] : Sessions.promptPhase[4];
+        let activePromptStateIndex = Object.keys(Sessions.promptPhase)
+            .findIndex(phase => activePrompt.state == Sessions.promptPhase[phase]);
+        
+        // Advance prompt state
+        activePrompt.state = Sessions.promptPhase[activePromptStateIndex + 1];
 
         resetTimer(session);
         users.forEach(user => user.state = Users.userState[0]);
 
-        if(nextPrompt && (activePrompt.state == Sessions.promptPhase[4] || maxSeconds == 0)) {
+        if(activePrompt.state == Sessions.promptPhase[3]) {
+            // Closing statements, kick off the first user.
+            users[0].state = Users.userState[1];
+        }
+
+        if(nextPrompt && activePrompt.state == Sessions.promptPhase[4]) {
             // Activate nextPrompt
             nextPrompt.state = Sessions.promptPhase[1];
             users[0].state = Users.userState[1];
@@ -84,8 +91,8 @@ function getSessionState(session) {
         maxSeconds          = session.participant_seconds,
         currSeconds         = maxSeconds,
         activePromptIndex   = session.prompts
-            .findIndex(prompt => prompt.state == Sessions.promptPhase[1] 
-                || prompt.state == Sessions.promptPhase[2]),
+            .findIndex(prompt => prompt.state != Sessions.promptPhase[4] 
+                && prompt.state != Sessions.promptPhase[0]),
         activePrompt        = session.prompts[activePromptIndex],
         nextPrompt          = session.prompts[activePromptIndex + 1];
     
@@ -106,6 +113,7 @@ function getSessionState(session) {
         stateObj.currSeconds = stateObj.maxSeconds;
         
         if(stateObj.maxSeconds == 0) {
+            //TODO: I dunno why this is here...there doesn't seem to be any circumstance where maxSeconds == 0
             stateObj.maxSeconds = 1;
             stateObj.currSeconds = 0;
         }

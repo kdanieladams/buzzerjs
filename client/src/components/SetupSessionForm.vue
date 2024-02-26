@@ -27,7 +27,7 @@
     <form id="options-form">
         <div class="form-control">
             <label for="time-min">
-                Opening statement time: <i class="small">(mm:ss)</i>
+                Opening/Closing statement time: <i class="small">(mm:ss)</i>
             </label>
             <input v-model="masked_participant_seconds" v-maska="'##:##'" placeholder="01:00"
                 inputmode="numeric" />

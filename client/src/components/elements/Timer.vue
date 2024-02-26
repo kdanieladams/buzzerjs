@@ -1,8 +1,6 @@
 <template>
     <div id="timer">
-        <div id="timer-text">
-            {{ timerText }}
-        </div>
+        <div id="timer-text" v-html="timerText"></div>
     </div>
 </template>
 
@@ -53,9 +51,20 @@ export default {
     },
     computed: {
         timerText() {
-            let roundtablePrompt = this.session.prompts.find(p => p.state == 'Roundtable');
-            return roundtablePrompt ? 'Roundtable' 
-                : (this.active_user) ? this.active_user.username : ''
+            let activePrompt = this.session.prompts
+                .find(prompt => prompt.state != 'Init' && prompt.state != 'Finished');
+            let text = "";
+
+            if(activePrompt) {
+                text = activePrompt.state;
+
+                if(this.active_user) {
+                    text = this.active_user.username + "<br />"
+                        + "<i style='font-size: 0.8rem;'>" + activePrompt.state + "</i>";
+                }
+            }
+            
+            return text;
         }
     },
     mounted() {
@@ -78,9 +87,10 @@ export default {
 
 #timer #timer-text {
     position: absolute;
-    bottom: 45px;
+    top: 125px; 
     width: 100%;
     font-size: 1rem;
     text-align: center;
+    line-height: 1.25rem;
 }
 </style>

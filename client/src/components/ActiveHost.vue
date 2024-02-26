@@ -7,7 +7,7 @@
     <div v-if="showTimerBtn" class="center">
         <Button v-if="!timerStarted" color="green" text="Ready" 
             icon="fa-play" @btn-click="startTimer" />
-        <Button v-if="timerStarted && curr_seconds != 0 && !isRoundtable" color="#ad6f00" text="Yield Time" 
+        <Button v-if="timerStarted && curr_seconds != 0 && !promptIsRoundtable" color="#ad6f00" text="Yield Time" 
             icon="fa-pause" @btn-click="$emit('advance-user')" />
     </div>
     <p>Prompts:
@@ -59,9 +59,9 @@
     </p>
     <div class="right">
         <template v-if="session.state == 'In Progress'">
-            <Button v-if="!isRoundtable" text="Next User" icon="fa-angle-double-right"
+            <Button v-if="!promptIsRoundtable" text="Next User" icon="fa-angle-double-right"
                 @btn-click="$emit('advance-user')" /> 
-            <Button :text="(isRoundtable ? 'Next' : 'Advance') + ' Prompt'" icon="fa-angle-double-right" 
+            <Button :text="(promptIsFinished ? 'Next' : 'Advance') + ' Prompt'" icon="fa-angle-double-right" 
                 @btn-click="$emit('advance-prompt')" />
         </template>
         <Button :text="btnPrimaryProps.text" :color="btnPrimaryProps.color" 
@@ -112,14 +112,18 @@ export default {
     computed: {
         showTimerBtn() {
             let activePrompt = this.session.prompts
-                .find(p => p.state == 'Opening' || p.state == 'Roundtable');
+                .find(p => p.state != 'Init' && p.state != 'Finished');
             
             return (this.active_user && this.active_user.username == this.clientUser) 
                 || (activePrompt && activePrompt.state == 'Roundtable');
         },
-        isRoundtable() {
+        promptIsRoundtable() {
             let roundtableIndex = this.session.prompts.findIndex(p => p.state == 'Roundtable');
             return (roundtableIndex != -1);
+        },
+        promptIsFinished() {
+            let activePrompt = this.session.prompts.find(p => p.state != 'Init' && p.state != 'Finished')
+            return activePrompt.state == 'Finished';
         }
     },
     methods: { 

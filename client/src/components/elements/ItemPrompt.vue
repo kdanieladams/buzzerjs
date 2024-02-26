@@ -1,7 +1,6 @@
 <template>
-    <div :class="'prompt ' + prompt.state">
-        <i v-if="prompt.state == 'Opening' || prompt.state == 'Roundtable'" 
-            class="far fa-question-circle"></i> 
+    <div :class="'prompt ' + (isActive ? 'active' : '') + (isFinished ? 'finished' : '')">
+        <i v-if="isActive == true" class="far fa-question-circle"></i> 
         {{ prompt.text }}
     </div>
 </template>
@@ -11,6 +10,14 @@ export default {
     name: "ItemPrompt",
     props: {
         prompt: Object
+    },
+    computed: {
+        isActive() {
+            return this.prompt.state != 'Init' && this.prompt.state != 'Finished';
+        },
+        isFinished() {
+            return this.prompt.state == 'Finished';
+        }
     }
 }
 </script>
@@ -21,15 +28,10 @@ export default {
     margin: 10px 0;
     padding: 5px;
 }
-.prompt.active, .prompt.roundtable {
+.prompt.active {
     background-color: #777;
     font-weight: bold;
 }
-/* .prompt.roundtable {
-    background-color: #121212;
-    border: solid 1px #777;
-    font-weight: bold;
-} */
 .prompt.finished {
     color: #555;
 }

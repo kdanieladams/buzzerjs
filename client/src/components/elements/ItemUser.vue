@@ -1,5 +1,5 @@
 <template>
-    <li :class="user.state">
+    <li :class="user.state.toLowerCase()">
         <div>
             <i v-if="user.state == 'Active'" class="fas fa-user-clock"></i>
             <i v-if="user.state == 'Spoken'" class="far fa-user"></i>
