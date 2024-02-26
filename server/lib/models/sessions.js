@@ -1,9 +1,9 @@
 const sessions = [];
 
 const sessionPhase = {
-    0: "Introduction",
+    0: "Prompt Intro",
     1: "In Progress",
-    2: "Outtro"
+    2: "Session Ended"
 };
 
 const promptPhase = {

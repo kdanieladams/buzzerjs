@@ -127,7 +127,7 @@ export default {
     },
     methods: { 
         btnPrimaryClick() {
-            if(this.session.state == 'Outtro') {
+            if(this.session.state == 'Session Ended') {
                 this.$router.push('/');
                 return;
             }
@@ -166,7 +166,7 @@ export default {
         });
 
         this.$watch('session', (newSession, oldSession) => {
-            if(newSession.state == 'Introduction') {
+            if(newSession.state == 'Prompt Intro') {
                 this.btnPrimaryProps = {
                     text: 'Begin Debate',
                     color: 'green',

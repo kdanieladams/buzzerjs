@@ -50,9 +50,11 @@ function advancePrompt(session) {
         }
 
         if(nextPrompt && activePrompt.state == Sessions.promptPhase[4]) {
-            // Activate nextPrompt
+            // Set session state to Intro (gives the host a chance to read the prompt and answer questions).
+            session.state = Sessions.sessionPhase[0];
+            
+            // Activate the next prompt
             nextPrompt.state = Sessions.promptPhase[1];
-            users[0].state = Users.userState[1];
         } else if(activePrompt.state == Sessions.promptPhase[4]) {
             // Advance the session
             advanceSession(session);
@@ -69,9 +71,13 @@ function advanceSession(session) {
     session.state = Sessions.sessionPhase[sessionStateIndex + 1];
 
     if(session.state == Sessions.sessionPhase[1]) {
-        // Activate first prompt and user
+        let promptIndex = session.prompts.findIndex(p => p.state != Sessions.promptPhase[0] && p.state != Sessions.promptPhase[4]);
+
+        if(promptIndex == -1) promptIndex = 0;
+
+        // Activate next prompt and user
         users[0].state = Users.userState[1];
-        session.prompts[0].state = Sessions.promptPhase[1];
+        session.prompts[promptIndex].state = Sessions.promptPhase[1];
     }
     else if(session.state == Sessions.sessionPhase[2]) {
         // Advance all prompts, clear active user
@@ -84,6 +90,7 @@ function advanceSession(session) {
 }
 
 function getSessionState(session) {
+    //TODO: handle lack of session object
     let users               = sortUsers(session.id),
         currUserIndex       = users.findIndex(usr => usr.state == Users.userState[1]),
         currUser            = users[currUserIndex],
@@ -117,7 +124,7 @@ function getSessionState(session) {
             stateObj.maxSeconds = 1;
             stateObj.currSeconds = 0;
         }
-    } else if(session.state == Sessions.sessionPhase[2]) {
+    } else if(session.state == Sessions.sessionPhase[0] || session.state == Sessions.sessionPhase[2]) {
         stateObj.maxSeconds = 1;
         stateObj.currSeconds = 0;
     }

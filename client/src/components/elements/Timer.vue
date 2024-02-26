@@ -55,7 +55,7 @@ export default {
                 .find(prompt => prompt.state != 'Init' && prompt.state != 'Finished');
             let text = "";
 
-            if(activePrompt) {
+            if(activePrompt && this.session.state != "Prompt Intro") {
                 text = activePrompt.state;
 
                 if(this.active_user) {

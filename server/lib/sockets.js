@@ -57,12 +57,13 @@ function eventDisconnect(io, socket) {
             if(userIdIndex > -1) {
                 session.user_id_order.splice(userIdIndex, 1);
             }
+
+            Utils.updateUi(io, session);
         }
 
         // Destroy the user
         user = Users.userLeave(user.id);
         console.log(`${user.username} disconnected...`); 
-        Utils.updateUi(io, session);
 
         // If user is host, destroy the session
         if(session && session.host_id == user.id) {
@@ -119,6 +120,7 @@ function eventStartSession(io, socket, params) {
         };
     });
 
+    session.prompts[0].state = Sessions.promptPhase[1];
     session.host_participate = options.host_participate;
     session.roundtable_minutes = parseInt(options.roundtable_minutes);
     session.participant_seconds = parseInt(options.participant_seconds);
