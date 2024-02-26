@@ -1,6 +1,5 @@
 <template>
-    <SessionId :session_id="session_id" :show_session_code="show_session_code"
-        @hide-session-click="clickHideSessionCode" />
+    <SessionId :session_id="session_id" :show_code="true" />
     <h4 class="center">Hey {{ username }}! Setup your new session.</h4>
     <p>Enter the prompts for debate (<i class="small">drag and drop to sort</i>):</p>
     <form @submit="onPromptSubmit" id="add-prompts-form">
@@ -118,7 +117,6 @@ export default {
         session_id: '',
         masked_participant_seconds: "01:00",
         masked_roundtable_minutes: "10:00",
-        show_session_code: true,
         password_valid: false
     }),
     methods: {
@@ -133,9 +131,6 @@ export default {
             } else {
                 this.password_valid = false;
             }
-        },
-        clickHideSessionCode(e) {
-            this.show_session_code = !this.show_session_code;
         },
         clickHostPart(e) {
             this.options.host_participate = !this.options.host_participate;
@@ -185,18 +180,10 @@ h4{
     margin-bottom: 25px;
 }
 
-button.btn {
-    font-size: 1rem !important;
-}
-button.btn:hover {
-    background-color: green;
-}
-
 label.checkbox {
     display: flex;
 }
 label.checkbox div {
-    /* flex: 4; */
     padding-left: 0.5rem;
     cursor: pointer;
 }

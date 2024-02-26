@@ -1,6 +1,5 @@
 <template>
-    <SessionId :session_id="session.id" :show_session_code="show_session_code"
-        @hide-session-click="clickHideSessionCode" />
+    <SessionId :session_id="session.id" :show_code="true" />
     <h5 class="center" id="session-state">{{ session.state }}</h5>
     <Timer ref="timer" :active_user="active_user" :session="session" 
         :curr_seconds="curr_seconds" :max_seconds="max_seconds" />
@@ -24,6 +23,7 @@
         </template>
     </ul>
     <hr />
+    <p>Settings:</p>
     <p class="session-property">
         Host is participating? 
         <span class="value" :style="session.host_participate ? 'color: green;' : 'color: red;'">
@@ -57,7 +57,7 @@
         Roundtable time:
         <span class="value">{{ session.roundtable_minutes }}:00</span>
     </p>
-    <div class="right">
+    <div class="right btn-bar">
         <template v-if="session.state == 'In Progress'">
             <Button v-if="!promptIsRoundtable" text="Next User" icon="fa-angle-double-right"
                 @btn-click="$emit('advance-user')" /> 
@@ -98,7 +98,6 @@ export default {
             clientUser: sessionStorage.getItem('username'),
             translatedSeconds: '0:00',
             timerStarted: false,
-            show_session_code: true,
             show_password: false,
             masked_password: "",
             btnPrimaryProps: {
@@ -134,9 +133,6 @@ export default {
             }
 
             this.$emit('advance-session');
-        },
-        clickHideSessionCode(e) {
-            this.show_session_code = !this.show_session_code;
         },
         clickRemoveUser(user) {
             this.$emit('remove-user', user.id);
@@ -224,7 +220,10 @@ p.session-property.password-display i:hover {
     cursor: pointer;
 }
 
-#user-list {
-    margin-bottom: 15px;
+div.btn-bar {
+    margin-top: 25px;
+}
+div.btn-bar button.btn:last-child {
+    margin-right: 0; 
 }
 </style>

@@ -1,10 +1,10 @@
 <template>
     <h2 class="center">
         <template v-if="show_session_code">
-            {{ session_id }} <i class="fas fa-eye-slash" @click="$emit('hide-session-click')" />
+            {{ session_id }} <i class="fas fa-eye-slash" @click="clickHideSession" />
         </template>
         <template v-if="!show_session_code">
-            * * * * * * * <i class="fas fa-eye" @click="$emit('hide-session-click')" />
+            * * * * * * * <i class="fas fa-eye" @click="clickHideSession" />
         </template>
     </h2>
     <h6 class="center">Session Code</h6>
@@ -14,9 +14,18 @@ export default {
     name: "SessionId",
     props: {
         session_id: String,
-        show_session_code: Boolean
+        show_code: Boolean
     },
-    emits: [ 'hide-session-click' ],
+    data() {
+        return {
+            show_session_code: this.show_code || false
+        };
+    },
+    methods: {
+        clickHideSession() {
+            this.show_session_code = !this.show_session_code;
+        }
+    },
     mounted() {
         let h2 = document.querySelector("h2.center");
 
@@ -29,7 +38,8 @@ export default {
                 selection.modify("extend", "left", "character");
             }
         });
-    }
+    },
+    emits: [ 'hide-session-click' ]
 };
 </script>
 <style scoped>

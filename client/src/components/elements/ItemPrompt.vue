@@ -1,6 +1,6 @@
 <template>
     <div :class="'prompt ' + (isActive ? 'active' : '') + (isFinished ? 'finished' : '')">
-        <i v-if="isActive == true" class="far fa-question-circle"></i> 
+        <i v-if="isActive" class="far fa-question-circle"></i> 
         {{ prompt.text }}
     </div>
 </template>

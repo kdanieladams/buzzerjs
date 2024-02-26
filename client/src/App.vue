@@ -68,7 +68,9 @@ header {
 }
 
 hr {
-    border-color: #999;
+  margin: 25px auto;
+  border-color: #555;
+  width: 90%;
 }
 
 main { 
@@ -126,8 +128,14 @@ p {
   margin-right: 5px;
 }
 
+#prompt-list {
+  list-style-type: none;
+  margin-bottom: 15px;
+}
+
 #user-list {
     list-style-type: none;
+    margin-bottom: 15px;
 }
 #user-list li {
     font-size: 0.9rem;
