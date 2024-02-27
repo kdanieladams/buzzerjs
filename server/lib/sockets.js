@@ -75,6 +75,15 @@ function eventDisconnect(io, socket) {
     }
 }
 
+function eventResetUser(io, socket, user_id) {
+    let user = Users.getUserById(user_id),
+        session = Sessions.getSession(user.session_id),
+        { currSeconds, maxSeconds } = Utils.getSessionState(session);
+
+    Utils.resetTimer(session);
+    io.to(session.id).emit('advanceTimer', { currSeconds, maxSeconds });
+}
+
 function eventRemoveUser(io, socket, user_id) {
     let user = Users.getUserById(user_id);
     
@@ -139,7 +148,7 @@ function eventStartSession(io, socket, params) {
     io.to(session.id).emit('sessionStarted', session);
 }
 
-function eventStartTimer(io, socket) {
+function eventStartTimer(io, socket, prevCurrSeconds = 0) {
     let user = Users.getUserBySocket(socket.id),
         session = Sessions.getSession(user.session_id),
         timer = null;
@@ -150,6 +159,8 @@ function eventStartTimer(io, socket) {
             maxSeconds,
             currSeconds
         } = Utils.getSessionState(session);
+
+        if(!!prevCurrSeconds) currSeconds = prevCurrSeconds;
 
         io.to(session.id).emit('advanceTimer', { currSeconds, maxSeconds });
 
@@ -174,6 +185,19 @@ function eventStartTimer(io, socket) {
 
         // Store the interval ID to be cleared later
         session.timer = parseInt(timer);
+    }
+}
+
+function eventPlayPauseTimer(io, socket, params) {
+    let { session_id, curr_seconds } = params,
+        session = Sessions.getSession(session_id);
+
+    if(!!session.timer) {
+        // Pause
+        Utils.resetTimer(session);
+    } else {
+        // Play
+        eventStartTimer(io, socket, curr_seconds);
     }
 }
 
@@ -287,10 +311,12 @@ module.exports = {
     eventAdvanceUser,
     eventDisconnect,
     eventPasswordProtectSession,
+    eventResetUser,
     eventRemoveUser,
     eventReorderUsers,
     eventStartSession,
     eventStartTimer,
+    eventPlayPauseTimer,
     eventVerify,
     eventVerifyPassword
 };

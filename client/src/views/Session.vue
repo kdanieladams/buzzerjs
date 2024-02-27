@@ -22,7 +22,8 @@
                 :curr_seconds="curr_seconds" :max_seconds="max_seconds" 
                 @start-timer="startTimer" @advance-session="advanceSession" 
                 @advance-prompt="advancePrompt" @advance-user="advanceUser"
-                @remove-user="removeUser" />
+                @play-pause-timer="playPauseTimer" @remove-user="removeUser" 
+                @reset-user="resetUser" />
         </template>
     </template>
 </template>
@@ -69,8 +70,14 @@ export default {
         passwordProtect(password) {
             this.socket.emit('passwordProtectSession', { session_id: this.session_id, password: password });
         },
+        playPauseTimer(user_id) {
+            this.socket.emit('playPauseTimer', { session_id: this.session_id, curr_seconds: this.curr_seconds });
+        },
         removeUser(user_id) {
             this.socket.emit('removeUser', user_id);
+        },
+        resetUser(user_id) {
+            this.socket.emit('resetUser', user_id);
         },
         sortUsers(users) {
             let new_user_id_order = users.map(user => user.id);

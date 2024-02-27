@@ -63,6 +63,14 @@ export default {
         this.$watch('active_user', () => {
             this.timerStarted = false;
         });
+
+        this.$watch('curr_seconds', (newVal, oldVal) => {
+            if(newVal < oldVal && oldVal != 0) {
+                this.timerStarted = true;
+            } else {
+                this.timerStarted = false;
+            }
+        })
     },
     emits: [ 'advance-user', 'start-timer' ]
 }

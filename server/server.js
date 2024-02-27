@@ -43,6 +43,10 @@ io.on('connection', socket => {
         SocketEvents.eventVerifyPassword(io, socket, { session_id, password, user_id });
     });
 
+    socket.on('resetUser', (user_id) => {
+        SocketEvents.eventResetUser(io, socket, user_id);
+    });
+
     socket.on('removeUser', (user_id) => {
         SocketEvents.eventRemoveUser(io, socket, user_id);
     });
@@ -61,6 +65,10 @@ io.on('connection', socket => {
 
     socket.on('startTimer', () => {
         SocketEvents.eventStartTimer(io, socket);
+    });
+
+    socket.on('playPauseTimer', ({ session_id, curr_seconds }) => {
+        SocketEvents.eventPlayPauseTimer(io, socket, { session_id, curr_seconds });
     });
 
     socket.on('advanceUser', () => {

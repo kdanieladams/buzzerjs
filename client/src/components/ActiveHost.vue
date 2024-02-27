@@ -19,7 +19,9 @@
     <ul id="user-list">
         <template v-for="(user, i) in users">
             <ItemUser :user="user" :client_username="clientUser" :client_is_host="true"
-                @remove-user="clickRemoveUser" />
+                :active_user="active_user" :play_pause="play_pause_val" 
+                @play-pause-timer="clickPlayPauseTimer" @remove-user="clickRemoveUser" 
+                @reset-user="clickResetUser" />
         </template>
     </ul>
     <hr />
@@ -95,17 +97,18 @@ export default {
     },
     data() {
         return {
-            clientUser: sessionStorage.getItem('username'),
-            translatedSeconds: '0:00',
-            timerStarted: false,
-            show_password: false,
-            masked_password: "",
             btnPrimaryProps: {
                 text: 'Begin Debate',
                 color: 'green',
                 icon: 'fa-angle-double-right',
                 icon_before: false
-            }
+            },
+            clientUser: sessionStorage.getItem('username'),
+            masked_password: "",
+            play_pause_val: true,
+            show_password: false,
+            translatedSeconds: '0:00',
+            timerStarted: false,
         }
     },
     computed: {
@@ -134,8 +137,14 @@ export default {
 
             this.$emit('advance-session');
         },
+        clickPlayPauseTimer(user){
+            this.$emit('play-pause-timer', user.id);
+        },
         clickRemoveUser(user) {
             this.$emit('remove-user', user.id);
+        },
+        clickResetUser(user) {
+            this.$emit('reset-user', user.id);
         },
         clickShowPassword(e) {
             this.show_password = !this.show_password;
@@ -162,7 +171,17 @@ export default {
         }
 
         this.$watch('active_user', () => {
-                this.timerStarted = false;
+            this.timerStarted = false;
+        });
+
+        this.$watch('curr_seconds', (newVal, oldVal) => {
+            if(newVal < oldVal && oldVal != 0) {
+                // Pause button
+                this.play_pause_val = false;
+            } else {
+                // Play button
+                this.play_pause_val = true;
+            }
         });
 
         this.$watch('session', (newSession, oldSession) => {
@@ -195,7 +214,9 @@ export default {
         'advance-prompt', 
         'advance-session', 
         'advance-user',
+        'play-pause-timer',
         'remove-user',
+        'reset-user',
         'start-timer'
     ]
 }
