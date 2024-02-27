@@ -1,6 +1,6 @@
 <template>
     <SessionId :session_id="session_id" :show_code="true" />
-    <h4 class="center">Hey {{ username }}! Setup your new session.</h4>
+    <h4 class="center">Hey {{ clientUser }}! Setup your new session.</h4>
     <p>Enter the prompts for debate (<i class="small">drag and drop to sort</i>):</p>
     <form @submit="onPromptSubmit" id="add-prompts-form">
         <div class="form-control">
@@ -78,9 +78,12 @@
             </template>
         </Draggable>
     </ul>
-    <div class="center">
-        <Button text="Start Session" color="green" icon="fa-play" icon_before="true"
-            @btn-click="onFormSubmit" />
+    <div class="right">
+        <Button text="Save Options" icon="fa-file-download" icon_before="true" 
+            @btn-click="clickSaveSession" />
+        <Button text="Load Options" icon="fa-file-upload" icon_before="true" 
+            @btn-click="clickLoadSession" />
+        <Button text="Start Session" color="green" icon="fa-play" @btn-click="onFormSubmit" />
     </div>
 </template>
 
@@ -113,7 +116,6 @@ export default {
             password_confirm: ""
         },
         prompts: [],
-        username: sessionStorage.getItem('username'),
         session_id: '',
         masked_participant_seconds: "01:00",
         masked_roundtable_minutes: "10:00",
@@ -141,17 +143,35 @@ export default {
         clickRemoveUser(user) {
             this.$emit('remove-user', user.id);
         },
-        onFormSubmit(e) {
-            let masked_part_seconds = !!(this.masked_participant_seconds) 
-                ? this.masked_participant_seconds.split(":") : 0;
-            let masked_round_minutes = !!this.masked_roundtable_minutes 
-                ? this.masked_roundtable_minutes.split(":")[0] : 0;
+        clickSaveSession(e) {
+            // translate the seconds first
+            this.translateSeconds();
 
-            this.options.participant_seconds = !(!!masked_part_seconds) ? masked_part_seconds 
-                : (parseInt(masked_part_seconds[0]) * 60) + parseInt(masked_part_seconds[1]);
-
-            this.options.roundtable_minutes = parseInt(masked_round_minutes);
+            let savedSession = {
+                options: this.options,
+                prompts: this.prompts
+            };
             
+            localStorage.setItem("savedSession", JSON.stringify(savedSession));
+            alert("Session options saved!");
+        },
+        clickLoadSession(e) {
+            let savedSession = JSON.parse(localStorage.getItem("savedSession"));
+
+            if(savedSession) {
+                this.options = savedSession.options;
+                this.prompts = savedSession.prompts;
+
+                // translate seconds back to the mask
+                this.masked_participant_seconds = "" + Math.floor(this.options.participant_seconds / 60)
+                this.masked_participant_seconds += ":" + (this.options.participant_seconds % 60);
+                this.masked_roundtable_minutes = this.options.roundtable_minutes + ":00";
+
+                alert("Session options loaded!");
+            }
+        },
+        onFormSubmit(e) {
+            this.translateSeconds();
             this.$emit('begin-session', { prompts: this.prompts, options: this.options });
         },
         onPromptSubmit(e) {
@@ -161,6 +181,17 @@ export default {
                 this.prompts.push(this.newPrompt);
                 this.newPrompt = '';
             }
+        },
+        translateSeconds() {
+            let masked_part_seconds = !!(this.masked_participant_seconds) 
+                ? this.masked_participant_seconds.split(":") : 0;
+            let masked_round_minutes = !!this.masked_roundtable_minutes 
+                ? this.masked_roundtable_minutes.split(":")[0] : 0;
+
+            this.options.participant_seconds = !(!!masked_part_seconds) ? masked_part_seconds 
+                : (parseInt(masked_part_seconds[0]) * 60) + parseInt(masked_part_seconds[1]);
+
+            this.options.roundtable_minutes = parseInt(masked_round_minutes);
         }
     },
     created() {
