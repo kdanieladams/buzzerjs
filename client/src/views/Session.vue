@@ -13,7 +13,7 @@
     </p>
     <template v-if="verified">
         <template v-if="!session_started">
-            <WaitingRoom v-if="!is_host" />
+            <WaitingRoom v-if="!is_host" :users="users" />
             <SetupSessionForm v-if="is_host" :users="users"
                 @begin-session="startSession" @user-sort="sortUsers"
                 @password-protect="passwordProtect" @remove-user="removeUser" />

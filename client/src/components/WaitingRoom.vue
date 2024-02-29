@@ -7,15 +7,27 @@
         <p>Waiting on host to begin session {{ session_id }}<em id="ellipsis_elm">...</em></p>
         <Button text="Cancel" color="#900" @btn-click="$router.push('/')" />
     </div>
+    <hr />
+    <p>Users:</p>
+    <ul id="user-list">
+        <template v-for="(user, i) in users">
+            <ItemUser :user="user" :client_username="clientUser" />
+        </template>
+    </ul>
 </template>
 
 <script>
 import Button from './elements/Button';
+import ItemUser from './elements/ItemUser';
 
 export default {
     name: 'WaitingRoom',
+    props: {
+        users: Array
+    },
     components: {
-        Button
+        Button,
+        ItemUser
     },
     data() {
         return {
