@@ -162,9 +162,12 @@ export default {
             return output;
         },
         startTimer() {
+            let activePrompt = this.session.prompts
+                .find(p => p.state != 'Init' && p.state != 'Finished');
+
             this.$emit('start-timer');
             this.timerStarted = true;
-            if(this.sound_on) this.sfxDing.play();
+            if(this.sound_on && activePrompt.state != "Roundtable") this.sfxDing.play();
         }
     },
     mounted() {
