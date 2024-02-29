@@ -34,7 +34,7 @@ function advancePrompt(session) {
         users
     } = getSessionState(session);
 
-    if(activePrompt) {
+    if(activePrompt && users.length > 0) {
         let activePromptStateIndex = Object.keys(Sessions.promptPhase)
             .findIndex(phase => activePrompt.state == Sessions.promptPhase[phase]);
         
