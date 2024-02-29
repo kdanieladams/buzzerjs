@@ -4,19 +4,19 @@ Simple buzzer app for debates.  This is the server-side app, written with Expres
 
 ## Project setup
 ```
-npm install
+$> npm install
 ```
 
 ### Compiles and hot-reloads for development
 This requires the client to be running in a different console window.
 ```
-npm run dev
+$> npm run dev
 ```
 
 ### Compiles and serves for production
 This serves the built client from a static directory (`/www`), so no need to run the client seperately.
 ```
-npm start
+$> npm start
 ```
 
 ### Deployment
@@ -43,12 +43,12 @@ For security reasons, I reccommend using a production-ready webserver (such as A
 </VirtualHost>
 ```
 
-Also, for hosting Node applications, you should use a process monitor of some sort to start and monitor the Node process, so that it can be automatically restarted in the event something goes wrong, and to maintain logs.  For that purpose, [PM2](https://pm2.keymetrics.io/) is highly reccommended.
+Also, for hosting Node applications, you should use a process monitor of some sort to start and monitor the Node process so that it can be automatically restarted in the event something goes wrong, and to maintain logs.  For that purpose, [PM2](https://pm2.keymetrics.io/) is highly reccommended.
 ```
-pm2 start "npm run start" --name buzzerjs
+$> pm2 start "npm run start" --name buzzerjs
 ```
 
 The app is fairly simple, but restarting it everyday is a good idea.  This will clear the storage and kill any hanging sockets.  And you probably want to timestamp log entries:
 ```
-pm2 restart buzzerjs --time --cron-restart="0 4 * * *"
+$> pm2 restart buzzerjs --time --cron-restart="0 4 * * *"
 ```
