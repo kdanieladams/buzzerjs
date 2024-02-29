@@ -2,7 +2,8 @@
     <SessionId :session_id="session.id" :show_code="true" />
     <h5 class="center" id="session-state">{{ session.state }}</h5>
     <Timer ref="timer" :active_user="active_user" :session="session" 
-        :curr_seconds="curr_seconds" :max_seconds="max_seconds" />
+        :curr_seconds="curr_seconds" :max_seconds="max_seconds"
+        :sound_on="sound_on" />
     <div v-if="showTimerBtn" class="center">
         <Button v-if="!timerStarted" color="green" text="Ready" 
             icon="fa-play" @btn-click="startTimer" />
@@ -77,6 +78,7 @@ import Button from './elements/Button';
 import ItemPrompt from './elements/ItemPrompt';
 import ItemUser from './elements/ItemUser';
 import SessionId from './elements/SessionId';
+import SfxDing from '../assets/sfx/reception-bell.mp3';
 import Timer from './elements/Timer';
 
 export default {
@@ -86,6 +88,7 @@ export default {
         curr_seconds: Number,
         max_seconds: Number,
         session: Object,
+        sound_on: Boolean,
         users: Array,
     },
     components: {
@@ -161,9 +164,13 @@ export default {
         startTimer() {
             this.$emit('start-timer');
             this.timerStarted = true;
+            if(this.sound_on) this.sfxDing.play();
         }
     },
     mounted() {
+        this.sfxDing = new Audio(SfxDing);
+        this.sfxDing.volume = 0.8;
+
         this.translatedSeconds = this.$refs.timer.translateSeconds(this.session.participant_seconds);
         
         if(!!this.session.password) {

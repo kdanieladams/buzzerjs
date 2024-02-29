@@ -1,7 +1,13 @@
 <template>
-    <router-link v-if="is_host || session_started" to="/">
-        <i class="fas fa-angle-double-left"></i> Cancel
-    </router-link>
+    <div class="topnav">
+        <div class="cancel-link">
+            <router-link v-if="is_host || session_started" to="/">
+                <i class="fas fa-angle-double-left"></i> Cancel
+            </router-link>
+        </div>
+        <i v-if="session_started && !sound_on" class="fas fa-volume-mute" @click="clickToggleSound"></i>
+        <i v-if="session_started && sound_on" class="fas fa-volume-up" @click="clickToggleSound"></i>
+    </div>
     <p v-if="!verified" class="center">
         Attempting to connect...
     </p>
@@ -16,12 +22,13 @@
             <ActiveParticipant v-if="!is_host" :session="active_session"
                 :users="users" :active_user="active_user" 
                 :curr_seconds="curr_seconds" :max_seconds="max_seconds" 
-                @start-timer="startTimer" @advance-user="advanceUser" />
+                :sound_on="sound_on" @start-timer="startTimer" 
+                @advance-user="advanceUser" />
             <ActiveHost v-if="is_host" :session="active_session"
                 :users="users" :active_user="active_user" 
                 :curr_seconds="curr_seconds" :max_seconds="max_seconds" 
-                @start-timer="startTimer" @advance-session="advanceSession" 
-                @advance-prompt="advancePrompt" @advance-user="advanceUser"
+                :sound_on="sound_on" @start-timer="startTimer" 
+                @advance-session="advanceSession" @advance-prompt="advancePrompt" @advance-user="advanceUser"
                 @play-pause-timer="playPauseTimer" @remove-user="removeUser" 
                 @reset-user="resetUser" />
         </template>
@@ -53,6 +60,7 @@ export default {
             session_id: '',
             session_started: false,
             socket: null,
+            sound_on: true,
             users: [],
             verified: false
         };
@@ -66,6 +74,9 @@ export default {
         },
         advanceUser() {
             this.socket.emit('advanceUser');
+        },
+        clickToggleSound() {
+            this.sound_on = !this.sound_on;
         },
         passwordProtect(password) {
             this.socket.emit('passwordProtectSession', { session_id: this.session_id, password: password });
@@ -206,6 +217,23 @@ export default {
 </script>
 
 <style scoped>
+.topnav {
+    display: flex;
+    color: #ccc;
+}
+.topnav div.cancel-link {
+    display: inline-block;
+    flex: 4;
+}
+.topnav i {
+    display: inline-block;
+    cursor: pointer;
+}
+
+.topnav i:hover {
+    color: white;
+}
+
 ::v-deep(#user-list) {
     list-style-type: none;
 }

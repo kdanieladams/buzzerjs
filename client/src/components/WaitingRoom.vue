@@ -30,10 +30,7 @@ export default {
 
         this.session_id = this.$route.params.session_id;
         this.animationInterval = setInterval((e) => {
-            if(ellipsisElm.innerHTML === "...") {
-                ellipsisElm.innerHTML = ".";
-                return;
-            }
+            halfSecondCount++;
 
             if(halfSecondCount >= 6) {
                 iconElm.classList.toggle("up");
@@ -41,8 +38,12 @@ export default {
                 halfSecondCount = 0;
             }
 
+            if(ellipsisElm.innerHTML === "...") {
+                ellipsisElm.innerHTML = ".";
+                return;
+            }
+
             ellipsisElm.innerHTML += ".";
-            halfSecondCount++;
         }, 500);
     },
     beforeUnmount() {

@@ -6,6 +6,8 @@
 
 <script>
 import ProgressBar from 'progressbar.js';
+import SfxBuzzer from '../../assets/sfx/buzzer.mp3';
+import SfxDing from '../../assets/sfx/reception-bell.mp3';
 
 export default {
     name: 'Timer',
@@ -13,11 +15,14 @@ export default {
         active_user: Object,
         session: Object,
         curr_seconds: Number,
-        max_seconds: Number
+        max_seconds: Number,
+        sound_on: Boolean
     },
     data() {
         return {
-            circleTimer: null
+            circleTimer: null,
+            sfxBuzzer: null,
+            sfxDing: null
         };
     },
     methods: {
@@ -68,9 +73,28 @@ export default {
         }
     },
     mounted() {
+        let clientUser = sessionStorage.getItem("username");
+        this.sfxBuzzer = new Audio(SfxBuzzer);
+        this.sfxDing = new Audio(SfxDing);
+        this.sfxDing.volume = 0.8;
+        
         this.initTimer();
+
         this.$watch('curr_seconds', (newVal, oldVal) => {
             this.cycleTimer(newVal);
+
+            if(newVal < oldVal && oldVal != 0) {
+                if(newVal == 0 && this.sound_on) {
+                    this.sfxBuzzer.play();
+                } 
+                else if(newVal == (this.max_seconds - 1) && this.sound_on) 
+                {
+                    if(this.active_user && this.active_user.username == clientUser)
+                        return;
+
+                    this.sfxDing.play();
+                }
+            } 
         });
     }
 }

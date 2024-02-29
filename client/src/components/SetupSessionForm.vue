@@ -167,7 +167,7 @@ export default {
                 this.masked_participant_seconds += ":" + (this.options.participant_seconds % 60);
                 this.masked_roundtable_minutes = this.options.roundtable_minutes + ":00";
 
-                alert("Session options loaded!");
+                // alert("Session options loaded!");
             }
         },
         onFormSubmit(e) {
